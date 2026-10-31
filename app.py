@@ -2,14 +2,13 @@ import streamlit as st
 import pdfplumber
 import re
 
-# Configuración de página
 st.set_page_config(
     page_title="Verificación de Score",
     page_icon="💳",
     layout="wide"
 )
 
-# Estilos CSS adaptados al diseño oscuro
+# Estilos CSS
 st.markdown("""
 <style>
     .stApp {
@@ -44,7 +43,6 @@ st.markdown("""
         justify-content: center;
         align-items: center;
         background: #131c2e;
-        position: relative;
     }
     .circle-score {
         font-size: 65px;
@@ -55,7 +53,6 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# Escala de Scores
 RANGOS = [
     {"label": "Excelente Puntaje", "min": 877, "max": 999, "color": "#00c875"},
     {"label": "Buen Puntaje",      "min": 722, "max": 876, "color": "#1db954"},
@@ -72,111 +69,4 @@ def clasificar_score(score):
 
 def procesar_pdf(file):
     texto = ""
-    with pdfplumber.open(file) as pdf:
-        for pagina in pdf.pages:
-            t = pagina.extract_text()
-            if t:
-                texto += t + "\n"
-
-    nombre = "CLIENTE"
-    
-    # 1. Búsqueda específica en fila de "Nombres" o "Datos Personales"
-    lineas = texto.splitlines()
-    palabras_a_ignorar = {
-        'NOMBRES', 'NOMBRE', 'DATOS', 'PERSONALES', 'APELLIDOS', 
-        'APELLIDO', 'PATERNO', 'MATERNO', 'DNI', 'TITULAR', 'RAZON', 'SOCIAL'
-    }
-
-    for i, linea in enumerate(lineas):
-        # Detectar la fila de Nombres
-        if re.search(r'\bNOMBRES?\b', linea, re.IGNORECASE):
-            texto_fila = linea
-            # Si el valor está en la fila de abajo en la tabla
-            if i + 1 < len(lineas):
-                texto_fila += " " + lineas[i + 1]
-
-            # Extraer solo palabras válidas (más de 1 letra)
-            palabras = [
-                p for p in re.findall(r'[A-Za-zÁÉÍÓÚÑáéíóúñ]+', texto_fila)
-                if p.upper() not in palabras_a_ignorar and len(p) > 1
-            ]
-
-            if palabras:
-                # Extrae la ÚLTIMA palabra tal como solicitaste
-                nombre = palabras[-1].upper()
-                break
-
-    # Fallback si el PDF no tenía la palabra 'NOMBRES' explícita
-    if nombre == "CLIENTE":
-        match_alt = re.search(r'(?:Titular|Razón Social)[:\s]+([^\n\r]+)', texto, re.IGNORECASE)
-        if match_alt:
-            palabras = [
-                p for p in re.findall(r'[A-Za-zÁÉÍÓÚÑáéíóúñ]+', match_alt.group(1))
-                if p.upper() not in palabras_a_ignorar and len(p) > 1
-            ]
-            if palabras:
-                nombre = palabras[-1].upper()
-
-    # 2. Extracción de Score
-    score = None
-    match_score = re.search(r'(?:score|puntaje|calificación|calificacion)[^\d]{1,30}(\d{2,3})', texto, re.IGNORECASE)
-    if match_score:
-        score = int(match_score.group(1))
-    else:
-        candidatos = re.findall(r'\b([1-9]\d{2})\b', texto)
-        if candidatos:
-            score = int(candidatos[0])
-
-    return nombre, score, texto
-
-# --- CABECERA ---
-st.markdown("<h1 style='text-align: center; color: white; margin-bottom: 30px;'>VERIFICACIÓN DE SCORE CREDITICIO</h1>", unsafe_allow_html=True)
-
-uploaded_file = st.file_uploader("📂 Adjunta el PDF del reporte Experian / Equifax", type=["pdf"])
-
-if uploaded_file:
-    nombre, score, texto_completo = procesar_pdf(uploaded_file)
-
-    col_input1, col_input2 = st.columns(2)
-    with col_input1:
-        nombre_final = st.text_input("Nombre detectado:", value=nombre)
-    with col_input2:
-        score_final = st.number_input("Score detectado:", min_value=1, max_value=999, value=score if score else 550)
-
-    categoria = clasificar_score(score_final)
-
-    st.markdown("---")
-
-    # --- PANTALLA PRINCIPAL: DOS COLUMNAS ---
-    col_izq, col_der = st.columns([1, 1], gap="large")
-
-    # Columna Izquierda: Tarjetas de Score
-    with col_izq:
-        st.markdown("<div style='background: #111a2d; padding: 25px; border-radius: 15px;'>", unsafe_allow_html=True)
-        st.markdown("### Score Crediticio")
-        st.caption("Es un número que indica la probabilidad de cumplir con tus obligaciones financieras.")
-        st.write("")
-
-        for r in RANGOS:
-            activo = (r["label"] == categoria["label"])
-            clase = "tier-active" if activo else ""
-            borde = f"border: 2.5px solid {r['color']};" if activo else "border: 1px solid rgba(255,255,255,0.05);"
-
-            st.markdown(f"""
-            <div class="tier-card {clase}" style="background-color: {r['color']}; {borde}">
-                <span style="color: white;">Score: {r['min']} - {r['max']}</span>
-                <span style="color: white;">{r['label']}</span>
-            </div>
-            """, unsafe_allow_html=True)
-
-        st.markdown("</div>", unsafe_allow_html=True)
-
-    # Columna Derecha: Círculo y Saludo
-    with col_der:
-        st.markdown("<div style='background: #111a2d; padding: 25px; border-radius: 15px; text-align: center;'>", unsafe_allow_html=True)
-        st.markdown(f"<h1 style='color: white; margin: 0;'>¡Hola {nombre_final}!</h1>", unsafe_allow_html=True)
-        st.markdown(f"<h2 style='color: {categoria['color']}; margin-top: 5px;'>Tu Score es {categoria['label'].replace('Puntaje ', '')}</h2>", unsafe_allow_html=True)
-
-        # Círculo del Score
-        st.markdown(f"""
-        <div class="circle-container" style="bor
+    with pdfplu
