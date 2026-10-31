@@ -53,12 +53,13 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
+# Escala de Scores (ajustada desde 0 para incluir puntajes en cero)
 RANGOS = [
-    {"label": "Excelente Puntaje", "min": 877, "max": 999, "color": "#00c875"},
-    {"label": "Buen Puntaje",      "min": 722, "max": 876, "color": "#1db954"},
-    {"label": "Puntaje Medio",     "min": 598, "max": 721, "color": "#f59e0b"},
-    {"label": "Puntaje Bajo",      "min": 477, "max": 597, "color": "#e67e22"},
-    {"label": "Puntaje Muy Bajo",  "min": 1,   "max": 476, "color": "#e74c3c"},
+    {"label": "Excelente Puntaje", "min": 877, "max": 999, "color": "#00c875", "rango_texto": "877 - 999"},
+    {"label": "Buen Puntaje",      "min": 722, "max": 876, "color": "#1db954", "rango_texto": "722 - 876"},
+    {"label": "Puntaje Medio",     "min": 598, "max": 721, "color": "#f59e0b", "rango_texto": "598 - 721"},
+    {"label": "Puntaje Bajo",      "min": 477, "max": 597, "color": "#e67e22", "rango_texto": "477 - 597"},
+    {"label": "Puntaje Muy Bajo",  "min": 0,   "max": 476, "color": "#e74c3c", "rango_texto": "0 - 476"},
 ]
 
 def clasificar_score(score):
@@ -116,6 +117,10 @@ def procesar_pdf(file):
         if candidatos:
             score = int(candidatos[0])
 
+    # REGLA ESPECIAL: Si el score detectado es 92, se convierte a 0
+    if score == 92:
+        score = 0
+
     return nombre, score, texto
 
 st.markdown("<h1 style='text-align: center; color: white; margin-bottom: 30px;'>VERIFICACIÓN DE SCORE CREDITICIO</h1>", unsafe_allow_html=True)
@@ -125,11 +130,19 @@ uploaded_file = st.file_uploader("📂 Adjunta el PDF del reporte Experian / Equ
 if uploaded_file:
     nombre, score, texto_completo = procesar_pdf(uploaded_file)
 
+    # Permitir valores desde 0
+    valor_inicial = score if score is not None else 550
+    if valor_inicial == 92:
+        valor_inicial = 0
+
     col_input1, col_input2 = st.columns(2)
     with col_input1:
         nombre_final = st.text_input("Nombre detectado:", value=nombre)
     with col_input2:
-        score_final = st.number_input("Score detectado:", min_value=1, max_value=999, value=score if score else 550)
+        score_input = st.number_input("Score detectado:", min_value=0, max_value=999, value=valor_inicial)
+
+    # Si manualmente alguien escribe 92, también lo convierte a 0
+    score_final = 0 if score_input == 92 else score_input
 
     categoria = clasificar_score(score_final)
 
@@ -150,7 +163,7 @@ if uploaded_file:
 
             html_box = f"""
             <div class="tier-card {clase}" style="background-color: {r['color']}; {borde}">
-                <span style="color: white;">Score: {r['min']} - {r['max']}</span>
+                <span style="color: white;">Score: {r['rango_texto']}</span>
                 <span style="color: white;">{r['label']}</span>
             </div>
             """
