@@ -24,8 +24,8 @@ css = (
     ".cert-container { background: #ffffff; color: #1e3a8a; padding: 35px; border-radius: 12px; border-top: 8px solid #1e3a8a; max-width: 750px; margin: 0 auto; box-shadow: 0 8px 30px rgba(0,0,0,0.3); font-family: sans-serif; }"
     ".cert-score-box { background: #f8fafc; border: 2px dashed #cbd5e1; border-radius: 12px; padding: 20px; text-align: center; margin: 20px 0; }"
     ".progress-bar-container { display: flex; height: 14px; border-radius: 7px; overflow: hidden; margin: 15px 0 5px 0; }"
-    ".timeline-card { background: #131c2e; border: 1px solid #1e293b; border-radius: 12px; padding: 12px 6px; text-align: center; min-width: 75px; margin: 4px; transition: transform 0.2s; }"
-    ".timeline-dot { width: 22px; height: 22px; border-radius: 50%; margin: 8px auto; box-shadow: 0 0 10px rgba(255,255,255,0.2); }"
+    ".timeline-card { background: #131c2e; border: 1.5px solid #1e293b; border-radius: 14px; padding: 16px 8px; text-align: center; margin: 4px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); transition: transform 0.2s; }"
+    ".timeline-dot { width: 26px; height: 26px; border-radius: 50%; margin: 12px auto; box-shadow: 0 0 12px rgba(255,255,255,0.25); }"
     "</style>"
 )
 st.markdown(css, unsafe_allow_html=True)
@@ -39,10 +39,16 @@ RANGOS = [
 ]
 
 COLORES_SEMAFORO = {
-    "Verde": {"hex": "#10b981", "desc": "Normal (Al día)"},
-    "Gris": {"hex": "#94a3b8", "desc": "Sin información"},
-    "Amarillo": {"hex": "#f59e0b", "desc": "Problemas Potenciales (CPP)"},
-    "Rojo": {"hex": "#ef4444", "desc": "Moroso (Deficiente / Pérdida)"}
+    "Verde": {"hex": "#10b981", "desc": "VERDE"},
+    "Gris": {"hex": "#94a3b8", "desc": "GRIS"},
+    "Amarillo": {"hex": "#f59e0b", "desc": "AMARILLO"},
+    "Rojo": {"hex": "#ef4444", "desc": "ROJO"}
+}
+
+MESES_NOMBRES = ["ENE", "FEB", "MAR", "ABR", "MAY", "JUN", "JUL", "AGO", "SEP", "OCT", "NOV", "DIC"]
+MESES_MAP = {
+    "enero": 1, "febrero": 2, "marzo": 3, "abril": 4, "mayo": 5, "junio": 6,
+    "julio": 7, "agosto": 8, "setiembre": 9, "septiembre": 9, "octubre": 10, "noviembre": 11, "diciembre": 12
 }
 
 def clasificar_score(score):
@@ -108,80 +114,130 @@ def extraer_nombre(pdf):
     return "CLIENTE"
 
 def extraer_semaforo_12m(pdf):
-    """Extrae los últimos 12 meses y sus colores del semáforo en la página 2."""
-    if len(pdf.pages) < 2:
-        return []
+    # 1. Encontrar la página que contiene el gráfico
+    pag_semaforo = None
+    texto_total = ""
+    for pag in pdf.pages:
+        t = pag.extract_text() or ""
+        texto_total += t + "\n"
+        if re.search(r"sem[aá]foros?\s+de\s+los", t, re.IGNORECASE) or ("semáforos" in t.lower() and "24 meses" in t.lower()):
+            pag_semaforo = pag
+            break
 
-    pag2 = pdf.pages[1]
-    texto_p2 = pag2.extract_text() or ""
+    if pag_semaforo is None:
+        pag_semaforo = pdf.pages[1] if len(pdf.pages) > 1 else pdf.pages[0]
 
-    # Extraer meses del eje X
-    meses_match = re.findall(r"\b(?:ENE|FEB|MAR|ABR|MAY|JUN|JUL|AGO|SEP|OCT|NOV|DIC)[-\s.]*20\d{2}\b", texto_p2, re.IGNORECASE)
-    meses_limpios = [m.upper().replace(" ", "-") for m in meses_match]
+    # 2. Extraer fecha actualizada del reporte para armar los últimos 12 meses
+    m_fecha = re.search(r"actualizada\s+al[:\s]+(?:\d{1,2}\s+de\s+)?([a-záéíóú]+)\s+del?\s+(\d{4})", texto_total, re.IGNORECASE)
+    mes_fin = 10
+    anio_fin = 2026
+    if m_fecha:
+        mes_str = m_fecha.group(1).lower().strip()
+        anio_fin = int(m_fecha.group(2))
+        mes_fin = MESES_MAP.get(mes_str, 10)
 
-    if len(meses_limpios) >= 12:
-        ultimos_meses = meses_limpios[-12:]
-    elif meses_limpios:
-        ultimos_meses = meses_limpios
+    ultimos_12_meses = []
+    for k in range(11, -1, -1):
+        total_m = (anio_fin * 12 + (mes_fin - 1)) - k
+        a = total_m // 12
+        m_idx = total_m % 12
+        ultimos_12_meses.append(f"{MESES_NOMBRES[m_idx]}-{a}")
+
+    # 3. Detectar círculos del gráfico
+    ancho = pag_semaforo.width
+    alto = pag_semaforo.height
+
+    candidatos = []
+    elementos = pag_semaforo.curves + pag_semaforo.rects
+    for obj in elementos:
+        w = obj.get("width", 0)
+        h = obj.get("height", 0)
+        top = obj.get("top", 0)
+        x0 = obj.get("x0", 0)
+
+        # Zona vertical del gráfico
+        if 0.08 * alto <= top <= 0.60 * alto:
+            if 2.5 <= w <= 50 and 2.5 <= h <= 50:
+                raw_c = obj.get("non_stroking_color") or obj.get("stroking_color")
+                candidatos.append({
+                    "x": x0 + w / 2,
+                    "y": top + h / 2,
+                    "color_raw": raw_c
+                })
+
+    # Separar puntos de referencia del eje izquierdo vs puntos de cada mes
+    ref_eje = [c for c in candidatos if c["x"] < ancho * 0.16]
+    puntos_grafico = [c for c in candidatos if c["x"] >= ancho * 0.16]
+
+    puntos_grafico.sort(key=lambda p: p["x"])
+
+    # Agrupar por mes (distancia horizontal > 7pt)
+    columnas_mes = []
+    for p in puntos_grafico:
+        if not columnas_mes or abs(p["x"] - columnas_mes[-1]["x"]) > 7:
+            columnas_mes.append(p)
+        else:
+            if p["color_raw"] and not columnas_mes[-1]["color_raw"]:
+                columnas_mes[-1] = p
+
+    # Identificar las 4 alturas de referencia (Verde, Gris, Amarillo, Rojo)
+    ref_eje.sort(key=lambda p: p["y"])
+    if len(ref_eje) >= 4:
+        y_verde = ref_eje[0]["y"]
+        y_gris = ref_eje[1]["y"]
+        y_amarillo = ref_eje[2]["y"]
+        y_rojo = ref_eje[3]["y"]
+    elif columnas_mes:
+        y_vals = [p["y"] for p in columnas_mes]
+        min_y = min(y_vals)
+        max_y = max(y_vals)
+        paso = (max_y - min_y) / 3 if max_y > min_y else 1
+        y_verde = min_y
+        y_gris = min_y + paso
+        y_amarillo = min_y + paso * 2
+        y_rojo = max_y
     else:
-        ultimos_meses = ["NOV-2025", "DIC-2025", "ENE-2026", "FEB-2026", "MAR-2026", "ABR-2026", "MAY-2026", "JUN-2026", "JUL-2026", "AGO-2026", "SEP-2026", "OCT-2026"]
+        y_verde, y_gris, y_amarillo, y_rojo = 110, 145, 180, 215
 
-    # Extraer los círculos gráficos del semáforo
-    ancho = pag2.width
-    puntos = []
-    for c in pag2.curves:
-        w = c.get("width", 0)
-        h = c.get("height", 0)
-        if 4 <= w <= 22 and 4 <= h <= 22:
-            if c.get("x0", 0) > (ancho * 0.08):
-                puntos.append(c)
+    def obtener_color(p):
+        raw = p.get("color_raw")
+        if isinstance(raw, (tuple, list)) and len(raw) >= 3:
+            r, g, b = raw[:3]
+            if r > 0.65 and g < 0.35:
+                return "Rojo"
+            elif r > 0.65 and g > 0.55:
+                return "Amarillo"
+            elif g > 0.5 and r < 0.45:
+                return "Verde"
+            elif abs(r - g) < 0.15 and abs(g - b) < 0.15:
+                return "Gris"
 
-    puntos.sort(key=lambda p: p.get("x0", 0))
+        py = p["y"]
+        d_v = abs(py - y_verde)
+        d_g = abs(py - y_gris)
+        d_a = abs(py - y_amarillo)
+        d_r = abs(py - y_rojo)
+        m = min(d_v, d_g, d_a, d_r)
+        if m == d_v:
+            return "Verde"
+        elif m == d_g:
+            return "Gris"
+        elif m == d_a:
+            return "Amarillo"
+        else:
+            return "Rojo"
 
-    # Filtrar duplicados por coordenada X
-    puntos_unicos = []
-    for p in puntos:
-        if not puntos_unicos or abs(p.get("x0", 0) - puntos_unicos[-1].get("x0", 0)) > 7:
-            puntos_unicos.append(p)
-
-    ultimos_puntos = puntos_unicos[-12:] if len(puntos_unicos) >= 12 else puntos_unicos
-
-    # Clasificar el color de cada punto
-    all_tops = [p.get("top", 0) for p in puntos_unicos]
-    min_top = min(all_tops) if all_tops else 0
-    max_top = max(all_tops) if all_tops else 1
-    delta = (max_top - min_top) / 3 if max_top > min_top else 1
+    ultimas_12_cols = columnas_mes[-12:] if len(columnas_mes) >= 12 else columnas_mes
 
     resultado = []
-    for i, mes in enumerate(ultimos_meses):
-        color = "Gris"
-        if i < len(ultimos_puntos):
-            pt = ultimos_puntos[i]
-            top = pt.get("top", 0)
-            raw_c = pt.get("non_stroking_color") or pt.get("stroking_color")
-
-            if isinstance(raw_c, (tuple, list)) and len(raw_c) >= 3:
-                r, g, b = raw_c[:3]
-                if r > 0.7 and g < 0.35:
-                    color = "Rojo"
-                elif r > 0.7 and g > 0.6:
-                    color = "Amarillo"
-                elif g > 0.5 and r < 0.4:
-                    color = "Verde"
-                elif abs(r - g) < 0.15 and abs(g - b) < 0.15:
-                    color = "Gris"
-            else:
-                # Si no hay canal RGB, usar la altura vertical
-                if top <= min_top + delta * 0.5:
-                    color = "Verde"
-                elif top <= min_top + delta * 1.5:
-                    color = "Gris"
-                elif top <= min_top + delta * 2.5:
-                    color = "Amarillo"
-                else:
-                    color = "Rojo"
-
-        resultado.append({"mes": mes, "color": color})
+    offset = len(ultimos_12_meses) - len(ultimas_12_cols)
+    for idx, mes in enumerate(ultimos_12_meses):
+        if idx >= offset and ultimas_12_cols:
+            punto = ultimas_12_cols[idx - offset]
+            c_final = obtener_color(punto)
+        else:
+            c_final = "Gris"
+        resultado.append({"mes": mes, "color": c_final})
 
     return resultado
 
@@ -323,7 +379,6 @@ if uploaded_file:
 
     st.markdown("---")
 
-    # PESTAÑAS PRINCIPALES: SCORE vs SEMÁFORO
     tab_score, tab_semaforo = st.tabs(["💳 Verificación de Score", "🚦 Semáforo Histórico (Últimos 12 Meses)"])
 
     # ==================== PESTAÑA 1: SCORE ====================
@@ -482,53 +537,26 @@ if uploaded_file:
             )
             st.markdown(html_cert, unsafe_allow_html=True)
 
-    # ==================== PESTAÑA 2: SEMÁFORO 12 MESES ====================
+    # ==================== PESTAÑA 2: SEMÁFORO 12 MESES LIMPIO ====================
     with tab_semaforo:
-        st.markdown("<h3 style='color: white;'>🚦 Historial de Pagos - Semáforo (Últimos 12 Meses)</h3>", unsafe_allow_html=True)
-        st.caption("Extraído directamente de la Posición Histórica (Página 2 del reporte de crédito).")
+        st.markdown("<h2 style='color: white; text-align: center; margin-bottom: 25px;'>🚦 Semáforo Histórico (Últimos 12 Meses)</h2>", unsafe_allow_html=True)
 
         if historial_semaforo:
-            # Resumen estadístico
-            cant_verde = sum(1 for x in historial_semaforo if x["color"] == "Verde")
-            cant_amarillo = sum(1 for x in historial_semaforo if x["color"] == "Amarillo")
-            cant_rojo = sum(1 for x in historial_semaforo if x["color"] == "Rojo")
-            cant_gris = sum(1 for x in historial_semaforo if x["color"] == "Gris")
-
-            r1, r2, r3, r4 = st.columns(4)
-            r1.metric("🟢 Meses al Día (Normal)", f"{cant_verde} de 12")
-            r2.metric("🟡 Problemas Potenciales (CPP)", f"{cant_amarillo} de 12")
-            r3.metric("🔴 Meses con Morosidad", f"{cant_rojo} de 12")
-            r4.metric("⚪ Sin Información", f"{cant_gris} de 12")
-
-            st.write("")
-            st.markdown("#### Línea de Tiempo Cronológica:")
-
-            # Render de las 12 tarjetas mensuales
             cols = st.columns(12)
             for idx, item in enumerate(historial_semaforo[-12:]):
                 col_info = COLORES_SEMAFORO.get(item["color"], COLORES_SEMAFORO["Gris"])
                 with cols[idx]:
                     card_html = (
                         '<div class="timeline-card">'
-                        f'<div style="font-size: 11px; color: #94a3b8; font-weight: bold;">{item["mes"][:3]}</div>'
-                        f'<div style="font-size: 9px; color: #64748b;">{item["mes"][-4:]}</div>'
+                        f'<div style="font-size: 12px; color: #94a3b8; font-weight: bold;">{item["mes"][:3]}</div>'
+                        f'<div style="font-size: 10px; color: #64748b; margin-bottom: 6px;">{item["mes"][-4:]}</div>'
                         f'<div class="timeline-dot" style="background-color: {col_info["hex"]};"></div>'
-                        f'<div style="font-size: 10px; font-weight: bold; color: {col_info["hex"]};">{item["color"][:3].upper()}</div>'
+                        f'<div style="font-size: 10px; font-weight: bold; color: {col_info["hex"]};">{col_info["desc"]}</div>'
                         '</div>'
                     )
                     st.markdown(card_html, unsafe_allow_html=True)
-
-            st.write("")
-            # Leyenda SBS explicativa
-            st.markdown("<div style='background: #111a2d; padding: 18px; border-radius: 12px; margin-top: 15px;'>", unsafe_allow_html=True)
-            st.markdown("<b>Leyenda Oficial del Semáforo SBS:</b>", unsafe_allow_html=True)
-            st.markdown("🟢 <b>Verde (Normal):</b> Pagos al día o con atraso no mayor a 8 días.", unsafe_allow_html=True)
-            st.markdown("🟡 <b>Amarillo (Con Problemas Potenciales - CPP):</b> Atrasos entre 9 y 30 días.", unsafe_allow_html=True)
-            st.markdown("🔴 <b>Rojo (Deficiente / Dudoso / Pérdida):</b> Atrasos mayores a 31 días o deudas en cobranza judicial/castigadas.", unsafe_allow_html=True)
-            st.markdown("⚪ <b>Gris (Sin Información):</b> Sin operaciones registradas en el sistema financiero durante ese mes.", unsafe_allow_html=True)
-            st.markdown("</div>", unsafe_allow_html=True)
         else:
-            st.warning("⚠️ No se encontró la página 2 con el semáforo histórico en este PDF.")
+            st.warning("⚠️ No se encontró la información del semáforo histórico en este PDF.")
 
 else:
     st.info("👆 Por favor sube un PDF para generar la verificación de score y el semáforo.")
