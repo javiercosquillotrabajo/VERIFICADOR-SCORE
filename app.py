@@ -126,7 +126,7 @@ def extraer_semaforo_12m(pdf):
     if pag_semaforo is None:
         pag_semaforo = pdf.pages[1] if len(pdf.pages) > 1 else pdf.pages[0]
 
-    # Calcular meses a partir de la fecha de corte
+    # Calcular meses exactos del reporte
     m_fecha = re.search(r"actualizada\s+al[:\s]+(?:\d{1,2}\s+de\s+)?([a-záéíóú]+)\s+del?\s+(\d{4})", texto_total, re.IGNORECASE)
     mes_fin = 10
     anio_fin = 2026
@@ -142,7 +142,49 @@ def extraer_semaforo_12m(pdf):
         m_idx = total_m % 12
         ultimos_12_meses.append(f"{MESES_NOMBRES[m_idx]}-{a}")
 
-    # Escaneo de curvas y círculos
+    # ESTRATEGIA 1: LECTURA DE LA TABLA SBS DE CALIFICACIONES
+    # Busca las filas de NOR, CPP, DEF, DUD, PER y sus números
+    lineas = texto_total.splitlines()
+    filas_sbs = {"NOR": [], "CPP": [], "DEF": [], "DUD": [], "PER": []}
+
+    for l in lineas:
+        for clave in filas_sbs.keys():
+            if re.search(rf"\b{clave}\b", l, re.IGNORECASE):
+                nums = re.findall(r"\b\d{1,3}(?:\.\d{1,2})?\b", l)
+                # Filtrar porcentajes o montos
+                nums_float = []
+                for n in nums:
+                    try:
+                        val = float(n)
+                        if val <= 100.0:
+                            nums_float.append(val)
+                    except:
+                        pass
+                if len(nums_float) >= 12 and not filas_sbs[clave]:
+                    filas_sbs[clave] = nums_float[-12:]
+
+    # Si encontramos las filas de la SBS con datos de los últimos 12 meses
+    if any(len(v) == 12 for v in filas_sbs.values()):
+        resultado = []
+        for i, mes in enumerate(ultimos_12_meses):
+            nor_val = filas_sbs["NOR"][i] if len(filas_sbs["NOR"]) == 12 else 0.0
+            cpp_val = filas_sbs["CPP"][i] if len(filas_sbs["CPP"]) == 12 else 0.0
+            def_val = filas_sbs["DEF"][i] if len(filas_sbs["DEF"]) == 12 else 0.0
+            dud_val = filas_sbs["DUD"][i] if len(filas_sbs["DUD"]) == 12 else 0.0
+            per_val = filas_sbs["PER"][i] if len(filas_sbs["PER"]) == 12 else 0.0
+
+            if (def_val > 0.0) or (dud_val > 0.0) or (per_val > 0.0):
+                c = "Rojo"
+            elif cpp_val > 0.0:
+                c = "Amarillo"
+            elif nor_val > 0.0:
+                c = "Verde"
+            else:
+                c = "Gris"
+            resultado.append({"mes": mes, "color": c})
+        return resultado, "tabla_sbs", texto_total[:1200]
+
+    # ESTRATEGIA 2: ESCANEO DE IMÁGENES / CURVAS / ELEMENTOS
     candidatos = []
     ancho = pag_semaforo.width
     for obj in (pag_semaforo.curves + pag_semaforo.rects):
@@ -150,15 +192,10 @@ def extraer_semaforo_12m(pdf):
         h = obj.get("height", 0)
         top = obj.get("top", 0)
         x0 = obj.get("x0", 0)
+        if 1 <= w <= 80 and 1 <= h <= 80:
+            candidatos.append({"x": x0 + w / 2, "y": top + h / 2})
 
-        if 1 <= w <= 65 and 1 <= h <= 65:
-            candidatos.append({
-                "x": x0 + w / 2,
-                "y": top + h / 2
-            })
-
-    ref_eje = [c for c in candidatos if c["x"] < ancho * 0.18]
-    puntos_grafico = [c for c in candidatos if c["x"] >= ancho * 0.18]
+    puntos_grafico = [c for c in candidatos if c["x"] >= ancho * 0.16]
     puntos_grafico.sort(key=lambda p: p["x"])
 
     columnas_mes = []
@@ -166,48 +203,24 @@ def extraer_semaforo_12m(pdf):
         if not columnas_mes or abs(p["x"] - columnas_mes[-1]["x"]) > 6:
             columnas_mes.append(p)
 
-    ref_eje.sort(key=lambda p: p["y"])
-    if len(ref_eje) >= 4:
-        y_v = ref_eje[0]["y"]
-        y_g = ref_eje[1]["y"]
-        y_a = ref_eje[2]["y"]
-        y_r = ref_eje[3]["y"]
-    elif columnas_mes:
+    if len(columnas_mes) >= 12:
         y_vals = [p["y"] for p in columnas_mes]
         min_y, max_y = min(y_vals), max(y_vals)
         paso = (max_y - min_y) / 3 if max_y > min_y else 1
-        y_v = min_y
-        y_g = min_y + paso
-        y_a = min_y + paso * 2
-        y_r = max_y
-    else:
-        y_v, y_g, y_a, y_r = 100, 135, 170, 205
+        y_v, y_g, y_a, y_r = min_y, min_y + paso, min_y + paso * 2, max_y
 
-    def calcular_color(py):
-        d_v = abs(py - y_v)
-        d_g = abs(py - y_g)
-        d_a = abs(py - y_a)
-        d_r = abs(py - y_r)
-        menor = min(d_v, d_g, d_a, d_r)
-        if menor == d_v:
-            return "Verde"
-        if menor == d_g:
-            return "Gris"
-        if menor == d_a:
-            return "Amarillo"
-        return "Rojo"
+        ultimas_cols = columnas_mes[-12:]
+        resultado = []
+        for idx, mes in enumerate(ultimos_12_meses):
+            py = ultimas_cols[idx]["y"]
+            dists = [(abs(py - y_v), "Verde"), (abs(py - y_g), "Gris"), (abs(py - y_a), "Amarillo"), (abs(py - y_r), "Rojo")]
+            dists.sort(key=lambda d: d[0])
+            resultado.append({"mes": mes, "color": dists[0][1]})
+        return resultado, "grafico_puntos", texto_total[:1200]
 
-    ultimas_cols = columnas_mes[-12:] if len(columnas_mes) >= 12 else columnas_mes
-    resultado = []
-    offset = len(ultimos_12_meses) - len(ultimas_cols)
-    for idx, mes in enumerate(ultimos_12_meses):
-        if idx >= offset and ultimas_cols:
-            col = calcular_color(ultimas_cols[idx - offset]["y"])
-        else:
-            col = "Verde"
-        resultado.append({"mes": mes, "color": col})
-
-    return resultado
+    # Fallback predeterminado según el score del cliente
+    resultado = [{"mes": m, "color": "Verde"} for m in ultimos_12_meses]
+    return resultado, "fallback", texto_total[:1200]
 
 def generar_pdf_descarga(nombre, score, categoria):
     buffer = io.BytesIO()
@@ -332,7 +345,7 @@ if uploaded_file:
     with pdfplumber.open(uploaded_file) as pdf:
         score_detectado = extraer_score_experian(pdf.pages[0])
         nombre_detectado = extraer_nombre(pdf)
-        historial_semaforo = extraer_semaforo_12m(pdf)
+        historial_semaforo, origen_metodo, debug_txt = extraer_semaforo_12m(pdf)
 
     valor_inicial = score_detectado if score_detectado is not None else 0
 
@@ -535,6 +548,11 @@ if uploaded_file:
                         label_visibility="collapsed"
                     )
                     item["color"] = nuevo_color
+
+            # Panel de Diagnóstico para ver qué detectó exactamente
+            with st.expander("🔍 Ver diagnóstico del semáforo"):
+                st.write(f"Método utilizado: `{origen_metodo}`")
+                st.text(debug_txt)
         else:
             st.warning("⚠️ No se encontró la información del semáforo histórico en este PDF.")
 
