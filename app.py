@@ -8,7 +8,7 @@ st.set_page_config(
     layout="wide"
 )
 
-# Estilos visuales acordes a tu diseño
+# Estilos visuales
 st.markdown("""
 <style>
     .stApp {
@@ -68,58 +68,64 @@ def clasificar_score(score):
     return RANGOS[-1]
 
 def extraer_score_experian(pagina):
-    """Busca el puntaje exclusivamente dentro de la zona del termómetro en la página 1."""
+    """Busca el puntaje en la página 1; si está excluido o no hay datos devuelve 0."""
     texto_p1 = pagina.extract_text() or ""
+
+    # REGLA EXACTA: Si está excluido del cálculo de score (código 92 o similar) -> 0
+    if re.search(r'excluid[oa]|código\s+de\s+exclusión|codigo\s+de\s+exclusion', texto_p1, re.IGNORECASE):
+        return 0
 
     # Método 1: Al lado de "Score Experian"
     m1 = re.search(r'Score\s+Experian[^\d]{0,40}?(\b[1-9]\d{2}\b)', texto_p1, re.IGNORECASE)
     if m1:
-        return int(m1.group(1))
+        s = int(m1.group(1))
+        return 0 if s == 92 else s
 
     # Método 2: Número de 3 dígitos antes o después de "Puntaje (Bajo|Medio|Buen|Excelente)"
     m2 = re.search(r'(\b[1-9]\d{2}\b)[\s\n]*(?:Puntaje\s*(?:Excelente|Buen|Medio|Bajo|Muy\s*Bajo))', texto_p1, re.IGNORECASE)
     if m2:
-        return int(m2.group(1))
+        s = int(m2.group(1))
+        return 0 if s == 92 else s
 
     m3 = re.search(r'(?:Puntaje\s*(?:Excelente|Buen|Medio|Bajo|Muy\s*Bajo))[\s\n]*(\b[1-9]\d{2}\b)', texto_p1, re.IGNORECASE)
     if m3:
-        return int(m3.group(1))
+        s = int(m3.group(1))
+        return 0 if s == 92 else s
 
-    # Método 3: Búsqueda espacial por coordenadas (cuadrante superior derecho del recuadro azul)
+    # Método 3: Búsqueda espacial en la zona del termómetro
     ancho = pagina.width
     palabras = pagina.extract_words()
     candidatos = []
     for w in palabras:
         t = w['text'].strip()
-        # Números enteros de 3 dígitos en la mitad derecha
         if t.isdigit() and len(t) == 3 and w['x0'] > (ancho * 0.5):
             candidatos.append((w['top'], int(t)))
 
     if candidatos:
-        candidatos.sort(key=lambda x: x[0])  # Toma el que esté más arriba (el del recuadro azul superior)
-        return candidatos[0][1]
+        candidatos.sort(key=lambda x: x[0])
+        s = candidatos[0][1]
+        return 0 if s == 92 else s
 
-    return None
+    # Si no hay datos en el recuadro, el valor es 0 (SIN PUNTAJE)
+    return 0
 
 def extraer_nombre(pdf):
-    """Extrae el nombre de la persona priorizando la fila de nombres o la cabecera del DNI."""
     texto_completo = ""
-    for pag in pdf.pages[:2]:  # Revisa página 1 y 2
+    for pag in pdf.pages[:2]:
         t = pag.extract_text()
         if t:
             texto_completo += t + "\n"
 
-    # Caso A: De la cabecera "DNI 42592619 - COSQUILLO CALIXTO JAVIER AUGUSTO"
+    # Caso A: Cabecera "DNI ... - APELLIDOS NOMBRES"
     match_cabecera = re.search(r'DNI\s+\d{8}\s*-\s*([A-ZÁÉÍÓÚÑ\s]+)', texto_completo)
     if match_cabecera:
         palabras_cab = [p for p in match_cabecera.group(1).split() if len(p) > 2]
         if len(palabras_cab) >= 3:
-            # Si tiene Apellido1 Apellido2 Nombre1... extrae el primer nombre (3ra palabra)
             return palabras_cab[2].upper()
         elif palabras_cab:
             return palabras_cab[-1].upper()
 
-    # Caso B: De la fila "Nombres" en Datos Personales
+    # Caso B: Fila "Nombres" en Datos Personales
     lineas = texto_completo.splitlines()
     palabras_a_ignorar = {'NOMBRES', 'NOMBRE', 'DATOS', 'PERSONALES', 'APELLIDOS', 'APELLIDO', 'DNI'}
     for i, linea in enumerate(lineas):
@@ -142,8 +148,8 @@ if uploaded_file:
         score_detectado = extraer_score_experian(pag1)
         nombre_detectado = extraer_nombre(pdf)
 
-    # Permitir ajuste manual si fuera necesario
-    valor_inicial = score_detectado if score_detectado is not None else 550
+    # Si no hay información o es excluido/92, el valor inicial es 0 (NO 550)
+    valor_inicial = score_detectado if score_detectado is not None else 0
 
     col_input1, col_input2 = st.columns(2)
     with col_input1:
@@ -151,13 +157,16 @@ if uploaded_file:
     with col_input2:
         score_input = st.number_input("Score detectado:", min_value=0, max_value=999, value=valor_inicial)
 
-    categoria = clasificar_score(score_input)
+    # Si manualmente alguien escribe 92, también se evalúa como 0
+    score_final = 0 if score_input == 92 else score_input
+
+    categoria = clasificar_score(score_final)
 
     st.markdown("---")
 
     col_izq, col_der = st.columns([1, 1], gap="large")
 
-    # Columna izquierda: Escala de colores
+    # Columna izquierda: Escala
     with col_izq:
         st.markdown("<div style='background: #111a2d; padding: 25px; border-radius: 15px;'>", unsafe_allow_html=True)
         st.markdown("### Score Crediticio")
@@ -188,7 +197,7 @@ if uploaded_file:
         html_circle = f"""
         <div class="circle-container" style="border: 14px solid {categoria['color']};">
             <span style="color: #94a3b8; font-size: 15px;">Tu score es</span>
-            <span class="circle-score" style="color: white;">{score_input}</span>
+            <span class="circle-score" style="color: white;">{score_final}</span>
             <span style="color: #94a3b8; font-size: 15px;">de 999</span>
         </div>
         """
