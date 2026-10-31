@@ -78,19 +78,48 @@ def procesar_pdf(file):
             if t:
                 texto += t + "\n"
 
-    # Extracción de Nombre
     nombre = "CLIENTE"
-    match_nombre = re.search(r'(?:NOMBRE|TITULAR|RAZÓN SOCIAL)[:\s]+([A-ZÁÉÍÓÚÑ\s]{4,35})', texto, re.IGNORECASE)
-    if match_nombre:
-        nombre = match_nombre.group(1).strip().split()[0].upper()
-    else:
-        palabras = re.findall(r'\b[A-ZÁÉÍÓÚÑ]{4,}\b', texto)
-        if palabras:
-            nombre = palabras[0].upper()
+    
+    # 1. Búsqueda específica en fila de "Nombres" o "Datos Personales"
+    lineas = texto.splitlines()
+    palabras_a_ignorar = {
+        'NOMBRES', 'NOMBRE', 'DATOS', 'PERSONALES', 'APELLIDOS', 
+        'APELLIDO', 'PATERNO', 'MATERNO', 'DNI', 'TITULAR', 'RAZON', 'SOCIAL'
+    }
 
-    # Extracción de Score
+    for i, linea in enumerate(lineas):
+        # Detectar la fila de Nombres
+        if re.search(r'\bNOMBRES?\b', linea, re.IGNORECASE):
+            texto_fila = linea
+            # Si el valor está en la fila de abajo en la tabla
+            if i + 1 < len(lineas):
+                texto_fila += " " + lineas[i + 1]
+
+            # Extraer solo palabras válidas (más de 1 letra)
+            palabras = [
+                p for p in re.findall(r'[A-Za-zÁÉÍÓÚÑáéíóúñ]+', texto_fila)
+                if p.upper() not in palabras_a_ignorar and len(p) > 1
+            ]
+
+            if palabras:
+                # Extrae la ÚLTIMA palabra tal como solicitaste
+                nombre = palabras[-1].upper()
+                break
+
+    # Fallback si el PDF no tenía la palabra 'NOMBRES' explícita
+    if nombre == "CLIENTE":
+        match_alt = re.search(r'(?:Titular|Razón Social)[:\s]+([^\n\r]+)', texto, re.IGNORECASE)
+        if match_alt:
+            palabras = [
+                p for p in re.findall(r'[A-Za-zÁÉÍÓÚÑáéíóúñ]+', match_alt.group(1))
+                if p.upper() not in palabras_a_ignorar and len(p) > 1
+            ]
+            if palabras:
+                nombre = palabras[-1].upper()
+
+    # 2. Extracción de Score
     score = None
-    match_score = re.search(r'(?:score|puntaje|calificación|calificacion)[^\d]{1,25}(\d{2,3})', texto, re.IGNORECASE)
+    match_score = re.search(r'(?:score|puntaje|calificación|calificacion)[^\d]{1,30}(\d{2,3})', texto, re.IGNORECASE)
     if match_score:
         score = int(match_score.group(1))
     else:
@@ -150,15 +179,4 @@ if uploaded_file:
 
         # Círculo del Score
         st.markdown(f"""
-        <div class="circle-container" style="border: 14px solid {categoria['color']};">
-            <span style="color: #94a3b8; font-size: 15px;">Tu score es</span>
-            <span class="circle-score" style="color: white;">{score_final}</span>
-            <span style="color: #94a3b8; font-size: 15px;">de 999</span>
-        </div>
-        """, unsafe_allow_html=True)
-
-        st.markdown(f"<h4 style='color: {categoria['color']}; font-weight: bold;'>● Verificado</h4>", unsafe_allow_html=True)
-        st.markdown("</div>", unsafe_allow_html=True)
-
-else:
-    st.info("👆 Por favor sube un PDF para generar la ficha de score.")
+        <div class="circle-container" style="bor
