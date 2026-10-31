@@ -198,4 +198,4 @@ if uploaded_file:
         st.markdown("</div>", unsafe_allow_html=True)
 
 else:
-    st.info("👆 Por favor sube
+    st.info("👆 Por favor sube un PDF para generar la ficha de score.")
