@@ -1,6 +1,10 @@
 import streamlit as st
 import pdfplumber
 import re
+import io
+from reportlab.lib.pagesizes import A4
+from reportlab.lib import colors
+from reportlab.pdfgen import canvas
 
 st.set_page_config(
     page_title="Verificación de Score",
@@ -40,35 +44,31 @@ def clasificar_score(score):
 
 def extraer_score_experian(pagina):
     texto_p1 = pagina.extract_text() or ""
-    if re.search(r'excluid[oa]|código\s+de\s+exclusión|codigo\s+de\s+exclusion', texto_p1, re.IGNORECASE):
+    if re.search(r"excluid[oa]|exclusi[oó]n", texto_p1, re.IGNORECASE):
         return 0
 
-    m1 = re.search(r'Score\s+Experian[^\d]{0,40}?(\b[1-9]\d{2}\b)', texto_p1, re.IGNORECASE)
-    if m1:
-        s = int(m1.group(1))
-        return 0 if s == 92 else s
+    m = re.search(r"(?:score\s+experian|puntaje)[^\d]{0,40}?(\b[1-9]\d{2}\b)", texto_p1, re.IGNORECASE)
+    if m:
+        valor = int(m.group(1))
+        return 0 if valor == 92 else valor
 
-    m2 = re.search(r'(\b[1-9]\d{2}\b)[\s\n]*(?:Puntaje\s*(?:Excelente|Buen|Medio|Bajo|Muy\s*Bajo))', texto_p1, re.IGNORECASE)
+    m2 = re.search(r"(\b[1-9]\d{2}\b)[\s\n]*puntaje", texto_p1, re.IGNORECASE)
     if m2:
-        s = int(m2.group(1))
-        return 0 if s == 92 else s
-
-    m3 = re.search(r'(?:Puntaje\s*(?:Excelente|Buen|Medio|Bajo|Muy\s*Bajo))[\s\n]*(\b[1-9]\d{2}\b)', texto_p1, re.IGNORECASE)
-    if m3:
-        s = int(m3.group(1))
-        return 0 if s == 92 else s
+        valor = int(m2.group(1))
+        return 0 if valor == 92 else valor
 
     ancho = pagina.width
+    palabras = pagina.extract_words()
     candidatos = []
-    for w in pagina.extract_words():
-        t = w['text'].strip()
-        if t.isdigit() and len(t) == 3 and w['x0'] > (ancho * 0.5):
-            candidatos.append((w['top'], int(t)))
+    for w in palabras:
+        t = w["text"].strip()
+        if t.isdigit() and len(t) == 3 and w["x0"] > (ancho * 0.5):
+            candidatos.append((w["top"], int(t)))
 
     if candidatos:
         candidatos.sort(key=lambda x: x[0])
-        s = candidatos[0][1]
-        return 0 if s == 92 else s
+        valor = candidatos[0][1]
+        return 0 if valor == 92 else valor
 
     return 0
 
@@ -79,7 +79,7 @@ def extraer_nombre(pdf):
         if t:
             texto += t + "\n"
 
-    match_cab = re.search(r'DNI\s+\d{8}\s*-\s*([A-ZÁÉÍÓÚÑ\s]+)', texto)
+    match_cab = re.search(r"DNI\s+\d{8}\s*-\s*([A-ZÁÉÍÓÚÑ\s]+)", texto)
     if match_cab:
         palabras = [p for p in match_cab.group(1).split() if len(p) > 2]
         if len(palabras) >= 3:
@@ -88,15 +88,140 @@ def extraer_nombre(pdf):
             return palabras[-1].upper()
 
     lineas = texto.splitlines()
-    palabras_a_ignorar = {'NOMBRES', 'NOMBRE', 'DATOS', 'PERSONALES', 'APELLIDOS', 'APELLIDO', 'DNI'}
+    palabras_a_ignorar = {"NOMBRES", "NOMBRE", "DATOS", "PERSONALES", "APELLIDOS", "APELLIDO", "DNI"}
     for i, linea in enumerate(lineas):
-        if re.search(r'\bNOMBRES?\b', linea, re.IGNORECASE):
+        if re.search(r"\bNOMBRES?\b", linea, re.IGNORECASE):
             texto_fila = linea + (" " + lineas[i+1] if i+1 < len(lineas) else "")
-            palabras = [p for p in re.findall(r'[A-Za-zÁÉÍÓÚÑáéíóúñ]+', texto_fila) if p.upper() not in palabras_a_ignorar and len(p) > 1]
+            palabras = [p for p in re.findall(r"[A-Za-zÁÉÍÓÚÑáéíóúñ]+", texto_fila) if p.upper() not in palabras_a_ignorar and len(p) > 1]
             if palabras:
                 return palabras[-1].upper()
 
     return "CLIENTE"
+
+def generar_pdf_descarga(nombre, score, categoria):
+    """Genera un archivo PDF elegante con el resultado crediticio."""
+    buffer = io.BytesIO()
+    c = canvas.Canvas(buffer, pagesize=A4)
+    ancho, alto = A4
+
+    # Fondo oscuro profesional
+    c.setFillColor(colors.HexColor("#0b111e"))
+    c.rect(0, 0, ancho, alto, fill=1, stroke=0)
+
+    # Cabecera
+    c.setFillColor(colors.HexColor("#94a3b8"))
+    c.setFont("Helvetica-Bold", 12)
+    c.drawString(50, alto - 50, "SISTEMA DE VERIFICACIÓN DE SCORE CREDITICIO")
+    c.setFont("Helvetica", 10)
+    c.drawRightString(ancho - 50, alto - 50, "DOCUMENTO INFORMATIVO")
+
+    c.setStrokeColor(colors.HexColor("#334155"))
+    c.setLineWidth(1)
+    c.line(50, alto - 60, ancho - 50, alto - 60)
+
+    # Recuadro Principal
+    c.setFillColor(colors.HexColor("#111a2d"))
+    c.setStrokeColor(colors.HexColor(categoria["color"]))
+    c.setLineWidth(2)
+    c.roundRect(50, alto - 280, ancho - 100, 200, 15, fill=1, stroke=1)
+
+    # Saludo y Nombre
+    c.setFillColor(colors.white)
+    c.setFont("Helvetica-Bold", 22)
+    c.drawString(75, alto - 110, f"¡HOLA, {nombre}!")
+
+    c.setFont("Helvetica", 14)
+    c.setFillColor(colors.HexColor(categoria["color"]))
+    c.drawString(75, alto - 135, f"Tu Score es {categoria['label'].replace('Puntaje ', '')}")
+
+    # Círculo del Score
+    cx = ancho - 150
+    cy = alto - 180
+    c.setStrokeColor(colors.HexColor(categoria["color"]))
+    c.setLineWidth(8)
+    c.setFillColor(colors.HexColor("#131c2e"))
+    c.circle(cx, cy, 55, fill=1, stroke=1)
+
+    c.setFillColor(colors.HexColor("#94a3b8"))
+    c.setFont("Helvetica", 9)
+    c.drawCentredString(cx, cy + 25, "Tu score es")
+
+    c.setFillColor(colors.white)
+    c.setFont("Helvetica-Bold", 32)
+    c.drawCentredString(cx, cy - 8, str(score))
+
+    c.setFillColor(colors.HexColor("#94a3b8"))
+    c.setFont("Helvetica", 9)
+    c.drawCentredString(cx, cy - 23, "de 999")
+
+    # Datos adicionales en el recuadro
+    c.setFillColor(colors.HexColor(categoria["color"]))
+    c.setFont("Helvetica-Bold", 11)
+    c.drawString(75, alto - 195, f"● Rango: {categoria['rango_texto']}")
+    c.drawString(75, alto - 220, "● Estado: VERIFICADO")
+
+    # 3 Tarjetas de Diagnóstico
+    c.setFillColor(colors.white)
+    c.setFont("Helvetica-Bold", 13)
+    c.drawString(50, alto - 315, "DIAGNÓSTICO CREDITICIO ESTIMADO")
+
+    ancho_caja = (ancho - 120) / 3
+    y_cajas = alto - 400
+
+    cajas = [
+        ("Préstamos Personales", categoria["prob_prestamo"]),
+        ("Tarjetas de Crédito", categoria["tarjetas"]),
+        ("Nivel de Riesgo SBS", categoria["riesgo"])
+    ]
+
+    for i, (titulo, val) in enumerate(cajas):
+        x = 50 + i * (ancho_caja + 10)
+        c.setFillColor(colors.HexColor("#172133"))
+        c.setStrokeColor(colors.HexColor("#334155"))
+        c.setLineWidth(1)
+        c.roundRect(x, y_cajas, ancho_caja, 70, 8, fill=1, stroke=1)
+
+        c.setFillColor(colors.HexColor("#94a3b8"))
+        c.setFont("Helvetica", 9)
+        c.drawCentredString(x + ancho_caja / 2, y_cajas + 45, titulo)
+
+        c.setFillColor(colors.HexColor(categoria["color"]))
+        c.setFont("Helvetica-Bold", 10)
+        c.drawCentredString(x + ancho_caja / 2, y_cajas + 22, val)
+
+    # Escala SBS / Buró
+    c.setFillColor(colors.white)
+    c.setFont("Helvetica-Bold", 13)
+    c.drawString(50, alto - 435, "ESCALA DE CLASIFICACIÓN DEL SCORE")
+
+    y_tabla = alto - 465
+    for r in RANGOS:
+        es_activo = (r["label"] == categoria["label"])
+        bg = colors.HexColor(r["color"]) if es_activo else colors.HexColor("#131c2e")
+        borde = colors.white if es_activo else colors.HexColor("#1e293b")
+
+        c.setFillColor(bg)
+        c.setStrokeColor(borde)
+        c.setLineWidth(1.5 if es_activo else 0.5)
+        c.roundRect(50, y_tabla - 18, ancho - 100, 22, 4, fill=1, stroke=1)
+
+        c.setFillColor(colors.white if es_activo else colors.HexColor("#cbd5e1"))
+        c.setFont("Helvetica-Bold" if es_activo else "Helvetica", 9)
+        c.drawString(65, y_tabla - 12, f"Score: {r['rango_texto']}")
+        c.drawRightString(ancho - 65, y_tabla - 12, r["label"])
+
+        y_tabla -= 26
+
+    # Pie de página
+    c.setFillColor(colors.HexColor("#64748b"))
+    c.setFont("Helvetica", 8)
+    c.drawCentredString(ancho / 2, 40, "Este documento es de carácter informativo generado automáticamente a partir del reporte de crédito.")
+    c.drawCentredString(ancho / 2, 28, "Válido para fines de orientación financiera.")
+
+    c.showPage()
+    c.save()
+    buffer.seek(0)
+    return buffer
 
 st.markdown("<h1 style='text-align: center; color: white;'>VERIFICACIÓN DE SCORE CREDITICIO</h1>", unsafe_allow_html=True)
 
@@ -122,6 +247,20 @@ if uploaded_file:
 
     score_final = 0 if score_input == 92 else score_input
     categoria = clasificar_score(score_final)
+
+    # BOTÓN DE DESCARGA PDF CENTRADO
+    st.write("")
+    col_b1, col_b2, col_b3 = st.columns([1, 1.5, 1])
+    with col_b2:
+        pdf_bytes = generar_pdf_descarga(nombre_final, score_final, categoria)
+        st.download_button(
+            label="📥 DESCARGAR RESULTADO EN PDF",
+            data=pdf_bytes,
+            file_name=f"Score_{nombre_final}_{score_final}.pdf",
+            mime="application/pdf",
+            use_container_width=True
+        )
+
     st.markdown("---")
 
     # ==================== OPCION 1: CLASICO ACTUAL ====================
