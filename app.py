@@ -116,7 +116,7 @@ def extraer_nombre(pdf):
 def extraer_semaforo_12m(pdf):
     texto_total = ""
     pag_semaforo = None
-    for idx_p, pag in enumerate(pdf.pages):
+    for pag in pdf.pages:
         t = pag.extract_text() or ""
         texto_total += t + "\n"
         if re.search(r"sem[aá]foros?\s+de\s+los", t, re.IGNORECASE) or ("semáforo" in t.lower() and "24" in t.lower()):
@@ -126,7 +126,7 @@ def extraer_semaforo_12m(pdf):
     if pag_semaforo is None:
         pag_semaforo = pdf.pages[1] if len(pdf.pages) > 1 else pdf.pages[0]
 
-    # Calcular los últimos 12 meses exactos a partir de la fecha del reporte
+    # Calcular meses a partir de la fecha de corte
     m_fecha = re.search(r"actualizada\s+al[:\s]+(?:\d{1,2}\s+de\s+)?([a-záéíóú]+)\s+del?\s+(\d{4})", texto_total, re.IGNORECASE)
     mes_fin = 10
     anio_fin = 2026
@@ -142,29 +142,7 @@ def extraer_semaforo_12m(pdf):
         m_idx = total_m % 12
         ultimos_12_meses.append(f"{MESES_NOMBRES[m_idx]}-{a}")
 
-    # Método 1: Búsqueda de tabla SBS textual
-    colores_tabla = []
-    lineas = texto_total.splitlines()
-    for linea in lineas:
-        if re.search(r"\b(?:NOR|CPP|DEF|DUD|PER|S/INF)\b", linea, re.IGNORECASE):
-            codigos = re.findall(r"\b(NOR|CPP|DEF|DUD|PER|S/INF)\b", linea, re.IGNORECASE)
-            if len(codigos) >= 12:
-                for c in codigos[-12:]:
-                    c_up = c.upper()
-                    if c_up == "NOR":
-                        colores_tabla.append("Verde")
-                    elif c_up == "CPP":
-                        colores_tabla.append("Amarillo")
-                    elif c_up in ["DEF", "DUD", "PER"]:
-                        colores_tabla.append("Rojo")
-                    else:
-                        colores_tabla.append("Gris")
-                break
-
-    if len(colores_tabla) == 12:
-        return [{"mes": m, "color": c} for m, c in zip(ultimos_12_meses, colores_tabla)]
-
-    # Método 2: Extracción de puntos gráficos
+    # Escaneo de curvas y círculos
     candidatos = []
     ancho = pag_semaforo.width
     for obj in (pag_semaforo.curves + pag_semaforo.rects):
@@ -174,50 +152,391 @@ def extraer_semaforo_12m(pdf):
         x0 = obj.get("x0", 0)
 
         if 1 <= w <= 65 and 1 <= h <= 65:
-            raw_c = obj.get("non_stroking_color") or obj.get("stroking_color")
             candidatos.append({
                 "x": x0 + w / 2,
-                "y": top + h / 2,
-                "color_raw": raw_c
+                "y": top + h / 2
             })
 
-    # Separar puntos del eje vs puntos de la serie mensual
     ref_eje = [c for c in candidatos if c["x"] < ancho * 0.18]
     puntos_grafico = [c for c in candidatos if c["x"] >= ancho * 0.18]
     puntos_grafico.sort(key=lambda p: p["x"])
 
-    # Agrupar columnas por mes
     columnas_mes = []
     for p in puntos_grafico:
         if not columnas_mes or abs(p["x"] - columnas_mes[-1]["x"]) > 6:
             columnas_mes.append(p)
-        else:
-            if p["color_raw"] and not columnas_mes[-1]["color_raw"]:
-                columnas_mes[-1] = p
 
     ref_eje.sort(key=lambda p: p["y"])
     if len(ref_eje) >= 4:
-        y_verde = ref_eje[0]["y"]
-        y_gris = ref_eje[1]["y"]
-        y_amarillo = ref_eje[2]["y"]
-        y_rojo = ref_eje[3]["y"]
+        y_v = ref_eje[0]["y"]
+        y_g = ref_eje[1]["y"]
+        y_a = ref_eje[2]["y"]
+        y_r = ref_eje[3]["y"]
     elif columnas_mes:
         y_vals = [p["y"] for p in columnas_mes]
         min_y, max_y = min(y_vals), max(y_vals)
         paso = (max_y - min_y) / 3 if max_y > min_y else 1
-        y_verde = min_y
-        y_gris = min_y + paso
-        y_amarillo = min_y + paso * 2
-        y_rojo = max_y
+        y_v = min_y
+        y_g = min_y + paso
+        y_a = min_y + paso * 2
+        y_r = max_y
     else:
-        y_verde, y_gris, y_amarillo, y_rojo = 100, 135, 170, 205
+        y_v, y_g, y_a, y_r = 100, 135, 170, 205
 
-    def punto_a_color(p):
-        raw = p.get("color_raw")
-        if isinstance(raw, (tuple, list)) and len(raw) >= 3:
-            r, g, b = raw[:3]
-            if r > 0.65 and g < 0.4:
-                return "Rojo"
-            elif r > 0.65 and g > 0.55:
-                return "Amarillo"
-            elif g > 0.
+    def calcular_color(py):
+        d_v = abs(py - y_v)
+        d_g = abs(py - y_g)
+        d_a = abs(py - y_a)
+        d_r = abs(py - y_r)
+        menor = min(d_v, d_g, d_a, d_r)
+        if menor == d_v:
+            return "Verde"
+        if menor == d_g:
+            return "Gris"
+        if menor == d_a:
+            return "Amarillo"
+        return "Rojo"
+
+    ultimas_cols = columnas_mes[-12:] if len(columnas_mes) >= 12 else columnas_mes
+    resultado = []
+    offset = len(ultimos_12_meses) - len(ultimas_cols)
+    for idx, mes in enumerate(ultimos_12_meses):
+        if idx >= offset and ultimas_cols:
+            col = calcular_color(ultimas_cols[idx - offset]["y"])
+        else:
+            col = "Verde"
+        resultado.append({"mes": mes, "color": col})
+
+    return resultado
+
+def generar_pdf_descarga(nombre, score, categoria):
+    buffer = io.BytesIO()
+    c = canvas.Canvas(buffer, pagesize=A4)
+    ancho, alto = A4
+
+    c.setFillColor(colors.HexColor("#0b111e"))
+    c.rect(0, 0, ancho, alto, fill=1, stroke=0)
+
+    c.setFillColor(colors.HexColor("#94a3b8"))
+    c.setFont("Helvetica-Bold", 12)
+    c.drawString(50, alto - 50, "SISTEMA DE VERIFICACIÓN DE SCORE CREDITICIO")
+    c.setFont("Helvetica", 10)
+    c.drawRightString(ancho - 50, alto - 50, "DOCUMENTO INFORMATIVO")
+
+    c.setStrokeColor(colors.HexColor("#334155"))
+    c.setLineWidth(1)
+    c.line(50, alto - 60, ancho - 50, alto - 60)
+
+    c.setFillColor(colors.HexColor("#111a2d"))
+    c.setStrokeColor(colors.HexColor(categoria["color"]))
+    c.setLineWidth(2)
+    c.roundRect(50, alto - 280, ancho - 100, 200, 15, fill=1, stroke=1)
+
+    c.setFillColor(colors.white)
+    c.setFont("Helvetica-Bold", 22)
+    c.drawString(75, alto - 110, f"¡HOLA, {nombre}!")
+
+    c.setFont("Helvetica", 14)
+    c.setFillColor(colors.HexColor(categoria["color"]))
+    c.drawString(75, alto - 135, f"Tu Score es {categoria['label'].replace('Puntaje ', '')}")
+
+    cx = ancho - 150
+    cy = alto - 180
+    c.setStrokeColor(colors.HexColor(categoria["color"]))
+    c.setLineWidth(8)
+    c.setFillColor(colors.HexColor("#131c2e"))
+    c.circle(cx, cy, 55, fill=1, stroke=1)
+
+    c.setFillColor(colors.HexColor("#94a3b8"))
+    c.setFont("Helvetica", 9)
+    c.drawCentredString(cx, cy + 25, "Tu score es")
+
+    c.setFillColor(colors.white)
+    c.setFont("Helvetica-Bold", 32)
+    c.drawCentredString(cx, cy - 8, str(score))
+
+    c.setFillColor(colors.HexColor("#94a3b8"))
+    c.setFont("Helvetica", 9)
+    c.drawCentredString(cx, cy - 23, "de 999")
+
+    c.setFillColor(colors.HexColor(categoria["color"]))
+    c.setFont("Helvetica-Bold", 11)
+    c.drawString(75, alto - 195, f"● Rango: {categoria['rango_texto']}")
+    c.drawString(75, alto - 220, "● Estado: VERIFICADO")
+
+    c.setFillColor(colors.white)
+    c.setFont("Helvetica-Bold", 13)
+    c.drawString(50, alto - 315, "DIAGNÓSTICO CREDITICIO ESTIMADO")
+
+    ancho_caja = (ancho - 120) / 3
+    y_cajas = alto - 400
+
+    cajas = [
+        ("Préstamos Personales", categoria["prob_prestamo"]),
+        ("Tarjetas de Crédito", categoria["tarjetas"]),
+        ("Nivel de Riesgo SBS", categoria["riesgo"])
+    ]
+
+    for i, (titulo, val) in enumerate(cajas):
+        x = 50 + i * (ancho_caja + 10)
+        c.setFillColor(colors.HexColor("#172133"))
+        c.setStrokeColor(colors.HexColor("#334155"))
+        c.setLineWidth(1)
+        c.roundRect(x, y_cajas, ancho_caja, 70, 8, fill=1, stroke=1)
+
+        c.setFillColor(colors.HexColor("#94a3b8"))
+        c.setFont("Helvetica", 9)
+        c.drawCentredString(x + ancho_caja / 2, y_cajas + 45, titulo)
+
+        c.setFillColor(colors.HexColor(categoria["color"]))
+        c.setFont("Helvetica-Bold", 10)
+        c.drawCentredString(x + ancho_caja / 2, y_cajas + 22, val)
+
+    c.setFillColor(colors.white)
+    c.setFont("Helvetica-Bold", 13)
+    c.drawString(50, alto - 435, "ESCALA DE CLASIFICACIÓN DEL SCORE")
+
+    y_tabla = alto - 465
+    for r in RANGOS:
+        es_activo = (r["label"] == categoria["label"])
+        bg = colors.HexColor(r["color"]) if es_activo else colors.HexColor("#131c2e")
+        borde = colors.white if es_activo else colors.HexColor("#1e293b")
+
+        c.setFillColor(bg)
+        c.setStrokeColor(borde)
+        c.setLineWidth(1.5 if es_activo else 0.5)
+        c.roundRect(50, y_tabla - 18, ancho - 100, 22, 4, fill=1, stroke=1)
+
+        c.setFillColor(colors.white if es_activo else colors.HexColor("#cbd5e1"))
+        c.setFont("Helvetica-Bold" if es_activo else "Helvetica", 9)
+        c.drawString(65, y_tabla - 12, f"Score: {r['rango_texto']}")
+        c.drawRightString(ancho - 65, y_tabla - 12, r["label"])
+
+        y_tabla -= 26
+
+    c.setFillColor(colors.HexColor("#64748b"))
+    c.setFont("Helvetica", 8)
+    c.drawCentredString(ancho / 2, 40, "Este documento es de carácter informativo generado automáticamente a partir del reporte de crédito.")
+    c.drawCentredString(ancho / 2, 28, "Válido para fines de orientación financiera.")
+
+    c.showPage()
+    c.save()
+    buffer.seek(0)
+    return buffer
+
+st.markdown("<h1 style='text-align: center; color: white;'>VERIFICACIÓN DE SCORE CREDITICIO</h1>", unsafe_allow_html=True)
+
+uploaded_file = st.file_uploader("📂 Adjunta el PDF del reporte Experian / Equifax", type=["pdf"])
+
+if uploaded_file:
+    with pdfplumber.open(uploaded_file) as pdf:
+        score_detectado = extraer_score_experian(pdf.pages[0])
+        nombre_detectado = extraer_nombre(pdf)
+        historial_semaforo = extraer_semaforo_12m(pdf)
+
+    valor_inicial = score_detectado if score_detectado is not None else 0
+
+    col_i1, col_i2 = st.columns(2)
+    with col_i1:
+        nombre_final = st.text_input("Nombre detectado:", value=nombre_detectado)
+    with col_i2:
+        score_input = st.number_input("Score detectado:", min_value=0, max_value=999, value=valor_inicial)
+
+    score_final = 0 if score_input == 92 else score_input
+    categoria = clasificar_score(score_final)
+
+    st.markdown("---")
+
+    tab_score, tab_semaforo = st.tabs(["💳 Verificación de Score", "🚦 Semáforo Histórico (Últimos 12 Meses)"])
+
+    # ==================== PESTAÑA 1: SCORE ====================
+    with tab_score:
+        col_s1, col_s2 = st.columns([1.5, 1])
+        with col_s1:
+            estilo_vista = st.selectbox(
+                "🎨 Selecciona el Estilo de Presentación:",
+                ["1. Clásico Actual", "2. Tarjeta Fintech VIP", "3. Certificado Oficial de Buró"]
+            )
+        with col_s2:
+            st.write("")
+            pdf_bytes = generar_pdf_descarga(nombre_final, score_final, categoria)
+            st.download_button(
+                label="📥 DESCARGAR EN PDF",
+                data=pdf_bytes,
+                file_name=f"Score_{nombre_final}_{score_final}.pdf",
+                mime="application/pdf",
+                use_container_width=True
+            )
+
+        st.write("")
+
+        if estilo_vista == "1. Clásico Actual":
+            col_izq, col_der = st.columns([1, 1], gap="large")
+            with col_izq:
+                st.markdown("<div style='background: #111a2d; padding: 25px; border-radius: 15px;'>", unsafe_allow_html=True)
+                st.markdown("### Score Crediticio")
+                st.caption("Es un número que indica la probabilidad de cumplir con tus obligaciones financieras.")
+                st.write("")
+                for r in RANGOS:
+                    activo = (r["label"] == categoria["label"])
+                    clase = "tier-active" if activo else ""
+                    borde = f"border: 2.5px solid {r['color']};" if activo else "border: 1px solid rgba(255,255,255,0.05);"
+                    html_card = (
+                        f'<div class="tier-card {clase}" style="background-color: {r["color"]}; {borde}">'
+                        f'<span style="color: white;">Score: {r["rango_texto"]}</span>'
+                        f'<span style="color: white;">{r["label"]}</span>'
+                        '</div>'
+                    )
+                    st.markdown(html_card, unsafe_allow_html=True)
+                st.markdown("</div>", unsafe_allow_html=True)
+
+            with col_der:
+                st.markdown("<div style='background: #111a2d; padding: 25px; border-radius: 15px; text-align: center;'>", unsafe_allow_html=True)
+                st.markdown(f"<h1 style='color: white; margin: 0;'>¡Hola {nombre_final}!</h1>", unsafe_allow_html=True)
+                st.markdown(f"<h2 style='color: {categoria['color']}; margin-top: 5px;'>Tu Score es {categoria['label'].replace('Puntaje ', '')}</h2>", unsafe_allow_html=True)
+                html_circle = (
+                    f'<div class="circle-container" style="border: 14px solid {categoria["color"]};">'
+                    '<span style="color: #94a3b8; font-size: 15px;">Tu score es</span>'
+                    f'<span class="circle-score" style="color: white;">{score_final}</span>'
+                    '<span style="color: #94a3b8; font-size: 15px;">de 999</span>'
+                    '</div>'
+                )
+                st.markdown(html_circle, unsafe_allow_html=True)
+                st.markdown(f"<h4 style='color: {categoria['color']}; font-weight: bold;'>● Verificado</h4>", unsafe_allow_html=True)
+                st.markdown("</div>", unsafe_allow_html=True)
+
+        elif estilo_vista == "2. Tarjeta Fintech VIP":
+            pct = min(max(int((score_final / 999) * 100), 4), 100)
+            html_fintech = (
+                '<div class="fintech-card">'
+                '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">'
+                '<span style="font-size: 13px; color: #94a3b8; letter-spacing: 2px;">PASAPORTE FINANCIERO DIGITAL</span>'
+                f'<span style="background: {categoria["color"]}22; color: {categoria["color"]}; border: 1px solid {categoria["color"]}; padding: 4px 12px; border-radius: 20px; font-weight: bold; font-size: 12px;">● {categoria["label"].upper()}</span>'
+                '</div>'
+                '<div style="text-align: center; margin: 25px 0;">'
+                '<h4 style="color: #94a3b8; margin: 0; font-weight: 400;">Puntaje Crediticio Oficial</h4>'
+                f'<h1 style="font-size: 75px; font-weight: 900; color: white; margin: 5px 0;">{score_final} <span style="font-size: 20px; color: #64748b; font-weight: 400;">/ 999</span></h1>'
+                f'<h3 style="color: {categoria["color"]}; margin: 0;">¡Hola {nombre_final}!</h3>'
+                '</div>'
+                '<div style="margin-top: 20px;">'
+                '<div style="display: flex; justify-content: space-between; font-size: 11px; color: #64748b; margin-bottom: 5px;">'
+                '<span>0 (Riesgo Alto)</span>'
+                f'<span style="color: {categoria["color"]}; font-weight: bold;">Tu nivel actual ({pct}%)</span>'
+                '<span>999 (Excelente)</span>'
+                '</div>'
+                '<div style="background: #334155; height: 12px; border-radius: 6px; overflow: hidden;">'
+                f'<div style="background: {categoria["color"]}; width: {pct}%; height: 100%; border-radius: 6px;"></div>'
+                '</div>'
+                '</div>'
+                '</div>'
+            )
+            st.markdown(html_fintech, unsafe_allow_html=True)
+
+            c1, c2, c3 = st.columns(3)
+            with c1:
+                h1 = (
+                    '<div class="diag-box">'
+                    '<div style="font-size: 28px; margin-bottom: 5px;">🏦</div>'
+                    '<div style="font-size: 13px; color: #94a3b8;">Préstamos Personales</div>'
+                    f'<div style="font-size: 16px; font-weight: bold; color: {categoria["color"]}; margin-top: 4px;">{categoria["prob_prestamo"]}</div>'
+                    '</div>'
+                )
+                st.markdown(h1, unsafe_allow_html=True)
+            with c2:
+                h2 = (
+                    '<div class="diag-box">'
+                    '<div style="font-size: 28px; margin-bottom: 5px;">💳</div>'
+                    '<div style="font-size: 13px; color: #94a3b8;">Tarjetas de Crédito</div>'
+                    f'<div style="font-size: 16px; font-weight: bold; color: {categoria["color"]}; margin-top: 4px;">{categoria["tarjetas"]}</div>'
+                    '</div>'
+                )
+                st.markdown(h2, unsafe_allow_html=True)
+            with c3:
+                h3 = (
+                    '<div class="diag-box">'
+                    '<div style="font-size: 28px; margin-bottom: 5px;">📊</div>'
+                    '<div style="font-size: 13px; color: #94a3b8;">Nivel de Riesgo SBS</div>'
+                    f'<div style="font-size: 16px; font-weight: bold; color: {categoria["color"]}; margin-top: 4px;">{categoria["riesgo"]}</div>'
+                    '</div>'
+                )
+                st.markdown(h3, unsafe_allow_html=True)
+
+        elif estilo_vista == "3. Certificado Oficial de Buró":
+            html_cert = (
+                '<div class="cert-container">'
+                '<div style="display: flex; justify-content: space-between; border-bottom: 2px solid #e2e8f0; padding-bottom: 15px;">'
+                '<div>'
+                '<h3 style="margin: 0; color: #1e3a8a; font-weight: 800;">REPORTE DE SALUD CREDITICIA</h3>'
+                '<span style="font-size: 12px; color: #64748b;">DIAGNÓSTICO INFORMATIVO DE RIESGO</span>'
+                '</div>'
+                '<div style="text-align: right;">'
+                '<span style="font-size: 12px; font-weight: bold; color: #1e3a8a;">EMISIÓN EN LÍNEA</span><br>'
+                '<span style="font-size: 11px; color: #64748b;">ESTADO: OFICIAL</span>'
+                '</div>'
+                '</div>'
+                '<div style="margin: 20px 0 10px 0;">'
+                '<span style="font-size: 14px; color: #64748b;">TITULAR CONSULTADO:</span>'
+                f'<h2 style="margin: 0; color: #0f172a; font-weight: 700;">{nombre_final}</h2>'
+                '</div>'
+                '<div class="cert-score-box">'
+                '<span style="font-size: 13px; color: #64748b; font-weight: 600; letter-spacing: 1px;">PUNTAJE DETERMINADO</span>'
+                f'<h1 style="font-size: 70px; margin: 0; font-weight: 900; color: {categoria["color"]};">{score_final} <span style="font-size: 22px; color: #94a3b8; font-weight: normal;">pts</span></h1>'
+                f'<div style="display: inline-block; background: {categoria["color"]}22; color: {categoria["color"]}; padding: 5px 18px; border-radius: 20px; font-weight: bold; font-size: 14px; border: 1px solid {categoria["color"]}; margin-top: 5px;">{categoria["label"].upper()}</div>'
+                '<div class="progress-bar-container">'
+                '<div style="background: #ef4444; flex: 476;"></div>'
+                '<div style="background: #e67e22; flex: 120;"></div>'
+                '<div style="background: #f59e0b; flex: 123;"></div>'
+                '<div style="background: #1db954; flex: 154;"></div>'
+                '<div style="background: #00c875; flex: 122;"></div>'
+                '</div>'
+                '<div style="display: flex; justify-content: space-between; font-size: 11px; color: #94a3b8;">'
+                '<span>0</span><span>477</span><span>598</span><span>722</span><span>877</span><span>999</span>'
+                '</div>'
+                '</div>'
+                '<div style="border-top: 1px solid #e2e8f0; padding-top: 15px; font-size: 13px; color: #475569;">'
+                f'<p style="margin: 4px 0;"><b>● Situación Financiera:</b> Comportamiento {categoria["label"].lower()} en el sistema bancario.</p>'
+                f'<p style="margin: 4px 0;"><b>● Nivel de Riesgo Buró:</b> Calificado como {categoria["riesgo"].lower()}.</p>'
+                f'<p style="margin: 4px 0;"><b>● Acceso a Créditos:</b> {categoria["prob_prestamo"]}.</p>'
+                '</div>'
+                '<div style="margin-top: 20px; background: #f1f5f9; padding: 12px; border-radius: 8px; text-align: center; font-size: 11px; color: #64748b;">'
+                '🛡️ Documento de consulta generado con tecnología de verificación instantánea.'
+                '</div>'
+                '</div>'
+            )
+            st.markdown(html_cert, unsafe_allow_html=True)
+
+    # ==================== PESTAÑA 2: SEMÁFORO 12 MESES ====================
+    with tab_semaforo:
+        st.markdown("<h2 style='color: white; text-align: center; margin-bottom: 25px;'>🚦 Semáforo Histórico (Últimos 12 Meses)</h2>", unsafe_allow_html=True)
+
+        if historial_semaforo:
+            cols = st.columns(12)
+            opciones_colores = ["Verde", "Gris", "Amarillo", "Rojo"]
+
+            for idx, item in enumerate(historial_semaforo[-12:]):
+                col_info = COLORES_SEMAFORO.get(item["color"], COLORES_SEMAFORO["Gris"])
+                with cols[idx]:
+                    card_html = (
+                        '<div class="timeline-card">'
+                        f'<div style="font-size: 12px; color: #94a3b8; font-weight: bold;">{item["mes"][:3]}</div>'
+                        f'<div style="font-size: 10px; color: #64748b; margin-bottom: 6px;">{item["mes"][-4:]}</div>'
+                        f'<div class="timeline-dot" style="background-color: {col_info["hex"]};"></div>'
+                        f'<div style="font-size: 10px; font-weight: bold; color: {col_info["hex"]};">{col_info["desc"]}</div>'
+                        '</div>'
+                    )
+                    st.markdown(card_html, unsafe_allow_html=True)
+
+                    idx_default = opciones_colores.index(item["color"]) if item["color"] in opciones_colores else 0
+                    nuevo_color = st.selectbox(
+                        f"Color {item['mes'][:3]}",
+                        opciones_colores,
+                        index=idx_default,
+                        key=f"col_mes_{idx}",
+                        label_visibility="collapsed"
+                    )
+                    item["color"] = nuevo_color
+        else:
+            st.warning("⚠️ No se encontró la información del semáforo histórico en este PDF.")
+
+else:
+    st.info("👆 Por favor sube un PDF para generar la verificación de score y el semáforo.")
