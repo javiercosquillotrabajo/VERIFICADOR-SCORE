@@ -129,63 +129,73 @@ def extraer_nombre(pdf):
 
 def extraer_deudas_sbs(pdf):
     deudas = []
-    for pag in pdf.pages:
-        txt = pag.extract_text() or ""
-        if not ("Entidad" in txt and ("Deuda Anterior" in txt or "SET 2026" in txt or "JUL 2026" in txt or "ABR 2026" in txt or "Fecha Inf" in txt)):
+    
+    # 1. Determinar páginas candidatas (prioridad página 3 = índice 2)
+    paginas_a_revisar = []
+    if len(pdf.pages) >= 3:
+        paginas_a_revisar.append(pdf.pages[2])
+    for idx_p, p in enumerate(pdf.pages):
+        if p not in paginas_a_revisar:
+            paginas_a_revisar.append(p)
+
+    for pag in paginas_a_revisar:
+        palabras = pag.extract_words()
+        if not palabras:
             continue
 
-        lineas = txt.splitlines()
-        en_tabla = False
+        # Reconstruir las filas visuales por su coordenada vertical Y
+        filas = []
+        for w in sorted(palabras, key=lambda x: (x["top"], x["x0"])):
+            if not filas or abs(w["top"] - filas[-1][0]["top"]) > 5:
+                filas.append([w])
+            else:
+                filas[-1].append(w)
 
-        for l in lineas:
+        lineas_visuales = []
+        for f in filas:
+            f_ord = sorted(f, key=lambda x: x["x0"])
+            txt_fila = " ".join([w["text"] for w in f_ord])
+            lineas_visuales.append(txt_fila)
+
+        # Buscar dentro de las líneas visuales de esta página
+        en_tabla = False
+        for l in lineas_visuales:
             l_strip = l.strip()
-            if "Detalle de la deuda SBS" in l_strip or "Entidad" in l_strip:
+
+            if "Detalle de la deuda SBS" in l_strip or "SBS/Microfinanzas" in l_strip:
                 en_tabla = True
                 continue
 
             if en_tabla:
-                if "TOTAL" in l_strip.upper() or "Detalle de vencidos" in l_strip or "Utilización de Líneas" in l_strip or "Otros documentos" in l_strip:
+                # Fin de la tabla del recuadro rojo
+                if "TOTAL" in l_strip.upper() or "Detalle de vencidos" in l_strip or "Utilización de Líneas" in l_strip:
                     en_tabla = False
                     break
 
-                if not l_strip:
-                    continue
+                # Buscar la calificación SBS seguida inmediatamente por el monto
+                # Ej: "... NOR 4,179.29" o "... NOR 4,179.29 15"
+                m_match = re.search(r"\b(NOR|CPP|DEF|DUD|PER|SCAL)\b\s+([\d,]+\.\d{2})(?:\s+(\d{1,4}))?", l_strip)
+                if m_match:
+                    calif = m_match.group(1).upper()
+                    monto = m_match.group(2)
+                    dias = m_match.group(3) if m_match.group(3) else "0"
 
-                m_calif = re.search(r"\b(NOR|CPP|DEF|DUD|PER|SCAL)\b", l_strip)
-                if m_calif:
-                    calif = m_calif.group(1).upper()
-                    pos_calif = m_calif.start()
-
-                    parte_izq = l_strip[:pos_calif].strip()
-                    parte_der = l_strip[m_calif.end():].strip()
-
-                    m_banco = re.search(r"^([A-ZÁÉÍÓÚÑa-záéíóúñ\s\.\/\-\&]+?)(?=\s+[\d,]+\.\d{2}|\s+\d{2}\/\d{2}\/\d{4})", parte_izq)
+                    parte_antes = l_strip[:m_match.start()].strip()
+                    # El nombre del banco es lo que está antes del primer número decimal o fecha
+                    m_banco = re.search(r"^([A-ZÁÉÍÓÚÑa-záéíóúñ\s\.\/\-\&]+?)(?=\s+[\d,]+\.\d{2}|\s+\d{2}\/\d{2}\/\d{4})", parte_antes)
                     if m_banco:
-                        nombre_banco = m_banco.group(1).strip()
+                        banco_nom = m_banco.group(1).strip()
                     else:
-                        palabras = parte_izq.split()
-                        nombre_banco = " ".join([p for p in palabras if not re.search(r"\d", p)])
+                        palabras_antes = parte_antes.split()
+                        banco_nom = " ".join([p for p in palabras_antes if not re.search(r"\d", p)])
 
-                    if not nombre_banco or "ENTIDAD" in nombre_banco.upper():
-                        continue
-
-                    m_monto = re.search(r"([\d,]+\.\d{2})", parte_der)
-                    if m_monto:
-                        monto = m_monto.group(1)
-                        resto = parte_der[m_monto.end():].strip()
-                        m_dias = re.search(r"\b(\d{1,4})\b", resto)
-                        dias = m_dias.group(1) if m_dias else "0"
-                    else:
-                        todos = re.findall(r"[\d,]+\.\d{2}", l_strip)
-                        monto = todos[-1] if todos else "0.00"
-                        dias = "0"
-
-                    deudas.append({
-                        "banco": nombre_banco,
-                        "monto": monto,
-                        "calif": calif,
-                        "dias": dias
-                    })
+                    if banco_nom and "ENTIDAD" not in banco_nom.upper() and "DETALLE" not in banco_nom.upper():
+                        deudas.append({
+                            "banco": banco_nom,
+                            "monto": monto,
+                            "calif": calif,
+                            "dias": dias
+                        })
 
         if deudas:
             break
@@ -506,15 +516,12 @@ with col_c2:
 
 score_val = 0 if score_input == 92 else score_input
 
-# Vista previa de deudas detectadas en tu panel privado
+# Confirmación visible en tu panel de control de los bancos encontrados
 if detected_deudas:
-    st.info(f"🏦 Se detectaron {len(detected_deudas)} entidades con deuda en la Página 3:")
-    cols_prev = st.columns(min(len(detected_deudas), 4))
-    for idx_d, d in enumerate(detected_deudas[:4]):
-        with cols_prev[idx_d]:
-            st.metric(d["banco"], f"S/ {d['monto']}", f"{d['calif']} ({d['dias']} d)")
+    nombres_bancos = ", ".join([f"{d['banco']} (S/ {d['monto']})" for d in detected_deudas])
+    st.success(f"✅ Se detectaron {len(detected_deudas)} bancos con deuda en la Página 3: {nombres_bancos}")
 else:
-    st.caption("ℹ️ No se detectaron bancos con deuda o la deuda es S/ 0.00.")
+    st.info("ℹ️ No se detectaron deudas en este reporte o el cliente tiene S/ 0.00.")
 
 cadena_deudas = "~".join([f"{d['banco']}*{d['monto']}*{d['calif']}*{d['dias']}" for d in detected_deudas])
 bancos_enc = urllib.parse.quote(cadena_deudas)
