@@ -22,30 +22,32 @@ except:
 
 css_base = (
     "<style>"
-    ".stApp { background-color: #f1f5f9; color: #0f172a; }"
+    ".stApp { background-color: #cbd5e1; color: #0f172a; }"
     "h1, h2, h3, h4, h5, p, span { color: #0f172a; font-family: 'Segoe UI', Tahoma, sans-serif; }"
-    ".card-panel { background: #ffffff; border: 2px solid #e2e8f0; border-radius: 20px; padding: 28px; box-shadow: 0 10px 30px rgba(0,0,0,0.06); }"
-    ".tier-card { padding: 16px 20px; border-radius: 14px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; font-weight: 800; font-size: 17px; color: #ffffff !important; opacity: 0.55; transition: all 0.3s ease; }"
-    ".tier-active { opacity: 1 !important; transform: scale(1.04); box-shadow: 0 12px 30px rgba(0,0,0,0.25) !important; }"
-    ".circle-container { width: 280px; height: 280px; border-radius: 50%; margin: 25px auto; display: flex; flex-direction: column; justify-content: center; align-items: center; background: #ffffff; box-shadow: 0 12px 35px rgba(0,0,0,0.1); }"
-    ".circle-score { font-size: 78px; font-weight: 900; line-height: 1; margin: 4px 0; color: #0f172a; }"
-    ".loading-box { background: #ffffff; border: 3px solid #2563eb; border-radius: 24px; padding: 45px 30px; text-align: center; margin: 40px auto; max-width: 650px; box-shadow: 0 15px 40px rgba(37,99,235,0.2); }"
-    ".btn-live-link { display: inline-block; width: 100%; background: linear-gradient(90deg, #2563eb, #059669); color: white !important; text-align: center; padding: 18px 24px; font-size: 18px; font-weight: 900; border-radius: 14px; text-decoration: none; box-shadow: 0 6px 20px rgba(37,99,235,0.3); margin-top: 15px; }"
-    ".fintech-card { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); border: 3px solid rgba(255,255,255,0.15); border-radius: 24px; padding: 32px; max-width: 720px; margin: 0 auto 25px auto; box-shadow: 0 15px 35px rgba(0,0,0,0.25); }"
-    ".diag-box { background: #ffffff; border: 2px solid #e2e8f0; padding: 18px 12px; border-radius: 16px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.04); }"
-    ".cert-container { background: #ffffff; border: 2px solid #cbd5e1; border-top: 10px solid #1e3a8a; border-radius: 16px; padding: 35px; max-width: 800px; margin: 0 auto; box-shadow: 0 12px 35px rgba(0,0,0,0.08); }"
-    ".cert-score-box { background: #f8fafc; border: 2.5px dashed #cbd5e1; border-radius: 16px; padding: 25px; text-align: center; margin: 20px 0; }"
-    ".progress-bar-container { display: flex; height: 16px; border-radius: 8px; overflow: hidden; margin: 15px 0 6px 0; }"
+    ".card-panel { background: #ffffff; border: 2.5px solid #94a3b8; border-radius: 22px; padding: 26px; box-shadow: 0 12px 35px rgba(15,23,42,0.12); }"
+    ".tier-card { padding: 16px 20px; border-radius: 14px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; font-weight: 900; font-size: 18px; color: #ffffff !important; opacity: 0.55; transition: all 0.25s ease; text-shadow: 0 1px 3px rgba(0,0,0,0.3); }"
+    ".tier-active { opacity: 1 !important; transform: scale(1.05); box-shadow: 0 12px 30px rgba(0,0,0,0.3) !important; }"
+    ".circle-container { width: 290px; height: 290px; border-radius: 50%; margin: 20px auto; display: flex; flex-direction: column; justify-content: center; align-items: center; background: #ffffff; box-shadow: 0 15px 40px rgba(0,0,0,0.14); }"
+    ".circle-score { font-size: 85px; font-weight: 900; line-height: 1; margin: 2px 0; }"
+    ".loading-box { background: #ffffff; border: 3.5px solid #2563eb; border-radius: 24px; padding: 45px 30px; text-align: center; margin: 40px auto; max-width: 650px; box-shadow: 0 15px 40px rgba(15,23,42,0.15); }"
+    ".btn-live-link { display: inline-block; width: 100%; background: linear-gradient(90deg, #2563eb, #00c853); color: white !important; text-align: center; padding: 18px 24px; font-size: 18px; font-weight: 900; border-radius: 14px; text-decoration: none; box-shadow: 0 6px 20px rgba(37,99,235,0.3); margin-top: 15px; }"
+    ".fintech-card { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); border: 3px solid #64748b; border-radius: 24px; padding: 32px; max-width: 720px; margin: 0 auto 25px auto; box-shadow: 0 18px 45px rgba(15,23,42,0.25); }"
+    ".diag-box { background: #ffffff; border: 2.5px solid #94a3b8; padding: 18px 12px; border-radius: 16px; text-align: center; box-shadow: 0 6px 20px rgba(15,23,42,0.06); }"
+    ".cert-container { background: #ffffff; border: 2.5px solid #94a3b8; border-top: 12px solid #1e3a8a; border-radius: 18px; padding: 35px; max-width: 820px; margin: 0 auto; box-shadow: 0 15px 40px rgba(15,23,42,0.1); }"
+    ".cert-score-box { background: #f8fafc; border: 3px dashed #94a3b8; border-radius: 18px; padding: 25px; text-align: center; margin: 20px 0; }"
+    ".progress-bar-container { display: flex; height: 18px; border-radius: 9px; overflow: hidden; margin: 15px 0 6px 0; }"
+    "div[data-testid='stRadio'] > div { justify-content: center; gap: 15px; background: #ffffff; padding: 10px 18px; border-radius: 30px; border: 2px solid #94a3b8; box-shadow: 0 4px 15px rgba(0,0,0,0.06); }"
     "</style>"
 )
 st.markdown(css_base, unsafe_allow_html=True)
 
+# COLORES ENCENDIDOS Y SATURADOS
 RANGOS = [
-    {"label": "Excelente Puntaje", "min": 877, "max": 999, "color": "#059669", "rango_texto": "877 - 999", "prob_prestamo": "Alta (Preferencial)", "tarjetas": "Líneas altas", "riesgo": "Mínimo"},
-    {"label": "Buen Puntaje",      "min": 722, "max": 876, "color": "#10b981", "rango_texto": "722 - 876", "prob_prestamo": "Alta", "tarjetas": "Aprobación Rápida", "riesgo": "Bajo"},
-    {"label": "Puntaje Medio",     "min": 598, "max": 721, "color": "#d97706", "rango_texto": "598 - 721", "prob_prestamo": "Media (Evaluación)", "tarjetas": "Límites moderados", "riesgo": "Moderado"},
-    {"label": "Puntaje Bajo",      "min": 477, "max": 597, "color": "#ea580c", "rango_texto": "477 - 597", "prob_prestamo": "Baja", "tarjetas": "Con garantía / aval", "riesgo": "Alto"},
-    {"label": "Puntaje Muy Bajo",  "min": 0,   "max": 476, "color": "#dc2626", "rango_texto": "0 - 476",   "prob_prestamo": "No Apto", "tarjetas": "Restringidas", "riesgo": "Crítico"},
+    {"label": "Excelente Puntaje", "min": 877, "max": 999, "color": "#00c853", "rango_texto": "877 - 999", "prob_prestamo": "Alta (Preferencial)", "tarjetas": "Líneas altas", "riesgo": "Mínimo"},
+    {"label": "Buen Puntaje",      "min": 722, "max": 876, "color": "#00e676", "rango_texto": "722 - 876", "prob_prestamo": "Alta", "tarjetas": "Aprobación Rápida", "riesgo": "Bajo"},
+    {"label": "Puntaje Medio",     "min": 598, "max": 721, "color": "#ffb300", "rango_texto": "598 - 721", "prob_prestamo": "Media (Evaluación)", "tarjetas": "Límites moderados", "riesgo": "Moderado"},
+    {"label": "Puntaje Bajo",      "min": 477, "max": 597, "color": "#ff6d00", "rango_texto": "477 - 597", "prob_prestamo": "Baja", "tarjetas": "Con garantía / aval", "riesgo": "Alto"},
+    {"label": "Puntaje Muy Bajo",  "min": 0,   "max": 476, "color": "#ff1744", "rango_texto": "0 - 476",   "prob_prestamo": "No Apto", "tarjetas": "Restringidas", "riesgo": "Crítico"},
 ]
 
 def clasificar_score(score):
@@ -121,67 +123,67 @@ def generar_pdf_descarga(nombre, score, categoria):
     c = canvas.Canvas(buffer, pagesize=A4)
     ancho, alto = A4
 
-    c.setFillColor(colors.white)
+    c.setFillColor(colors.HexColor("#cbd5e1"))
     c.rect(0, 0, ancho, alto, fill=1, stroke=0)
 
     c.setFillColor(colors.HexColor("#0f172a"))
     c.setFont("Helvetica-Bold", 14)
     c.drawString(50, alto - 50, "VERIFICACIÓN DE SCORE CREDITICIO")
 
-    c.setStrokeColor(colors.HexColor("#cbd5e1"))
-    c.setLineWidth(1)
+    c.setStrokeColor(colors.HexColor("#94a3b8"))
+    c.setLineWidth(1.5)
     c.line(50, alto - 60, ancho - 50, alto - 60)
 
-    c.setFillColor(colors.HexColor("#f8fafc"))
+    c.setFillColor(colors.white)
     c.setStrokeColor(colors.HexColor(categoria["color"]))
-    c.setLineWidth(2)
+    c.setLineWidth(2.5)
     c.roundRect(50, alto - 280, ancho - 100, 200, 15, fill=1, stroke=1)
 
     c.setFillColor(colors.HexColor("#0f172a"))
-    c.setFont("Helvetica-Bold", 22)
+    c.setFont("Helvetica-Bold", 24)
     c.drawString(75, alto - 110, f"¡HOLA, {nombre}!")
 
-    c.setFont("Helvetica-Bold", 14)
+    c.setFont("Helvetica-Bold", 15)
     c.setFillColor(colors.HexColor(categoria["color"]))
-    c.drawString(75, alto - 135, f"Tu Score es {categoria['label'].replace('Puntaje ', '')}")
+    c.drawString(75, alto - 138, f"Tu Score es {categoria['label'].replace('Puntaje ', '')}")
 
     cx = ancho - 150
     cy = alto - 180
     c.setStrokeColor(colors.HexColor(categoria["color"]))
-    c.setLineWidth(8)
+    c.setLineWidth(9)
     c.setFillColor(colors.white)
-    c.circle(cx, cy, 55, fill=1, stroke=1)
+    c.circle(cx, cy, 58, fill=1, stroke=1)
 
     c.setFillColor(colors.HexColor("#64748b"))
-    c.setFont("Helvetica", 9)
-    c.drawCentredString(cx, cy + 25, "Tu score es")
-
-    c.setFillColor(colors.HexColor("#0f172a"))
-    c.setFont("Helvetica-Bold", 32)
-    c.drawCentredString(cx, cy - 8, str(score))
-
-    c.setFillColor(colors.HexColor("#64748b"))
-    c.setFont("Helvetica", 9)
-    c.drawCentredString(cx, cy - 23, "de 999")
+    c.setFont("Helvetica-Bold", 10)
+    c.drawCentredString(cx, cy + 26, "Tu score es")
 
     c.setFillColor(colors.HexColor(categoria["color"]))
-    c.setFont("Helvetica-Bold", 11)
+    c.setFont("Helvetica-Bold", 36)
+    c.drawCentredString(cx, cy - 10, str(score))
+
+    c.setFillColor(colors.HexColor("#64748b"))
+    c.setFont("Helvetica-Bold", 10)
+    c.drawCentredString(cx, cy - 26, "de 999")
+
+    c.setFillColor(colors.HexColor(categoria["color"]))
+    c.setFont("Helvetica-Bold", 12)
     c.drawString(75, alto - 195, f"● Rango: {categoria['rango_texto']}")
-    c.drawString(75, alto - 220, "● Estado: VERIFICADO")
+    c.drawString(75, alto - 222, "● Estado: VERIFICADO")
 
     y_tabla = alto - 320
     for r in RANGOS:
         es_activo = (r["label"] == categoria["label"])
-        bg = colors.HexColor(r["color"]) if es_activo else colors.HexColor("#f1f5f9")
-        borde = colors.HexColor(r["color"]) if es_activo else colors.HexColor("#e2e8f0")
+        bg = colors.HexColor(r["color"]) if es_activo else colors.white
+        borde = colors.HexColor(r["color"]) if es_activo else colors.HexColor("#cbd5e1")
 
         c.setFillColor(bg)
         c.setStrokeColor(borde)
-        c.setLineWidth(1.5 if es_activo else 0.5)
-        c.roundRect(50, y_tabla - 18, ancho - 100, 24, 4, fill=1, stroke=1)
+        c.setLineWidth(2 if es_activo else 1)
+        c.roundRect(50, y_tabla - 18, ancho - 100, 24, 6, fill=1, stroke=1)
 
-        c.setFillColor(colors.white if es_activo else colors.HexColor("#334155"))
-        c.setFont("Helvetica-Bold" if es_activo else "Helvetica", 9)
+        c.setFillColor(colors.white if es_activo else colors.HexColor("#0f172a"))
+        c.setFont("Helvetica-Bold", 10)
         c.drawString(65, y_tabla - 12, f"Score: {r['rango_texto']}")
         c.drawRightString(ancho - 65, y_tabla - 12, r["label"])
 
@@ -193,7 +195,7 @@ def generar_pdf_descarga(nombre, score, categoria):
     return buffer
 
 # =========================================================================
-# VISTA PÚBLICA: PESTAÑA PROYECTORA DEL LIVE (LETRAS GIGANTES Y NÍTIDAS)
+# VISTA PÚBLICA: PESTAÑA PROYECTORA DEL LIVE (GRIS OFICINA + BOTONES DE ESTILO)
 # =========================================================================
 if es_pantalla_live:
     css_limpio = (
@@ -202,7 +204,7 @@ if es_pantalla_live:
         "header { display: none !important; }"
         "#MainMenu { display: none !important; }"
         "footer { display: none !important; }"
-        ".block-container { padding-top: 1.5rem !important; max-width: 1050px !important; }"
+        ".block-container { padding-top: 1rem !important; max-width: 1050px !important; }"
         "</style>"
     )
     st.markdown(css_limpio, unsafe_allow_html=True)
@@ -212,7 +214,6 @@ if es_pantalla_live:
         score_live = int(params.get("score", "0"))
     except:
         score_live = 0
-    estilo_code = params.get("estilo", "1")
     t_stamp = params.get("t", "0")
 
     # Animación con suspenso al recibir consulta nueva
@@ -233,9 +234,9 @@ if es_pantalla_live:
                 f'<h3 style="color: #0f172a; margin: 15px 0 5px 0; font-size: 22px; font-weight: 800;">{tit}</h3>'
                 f'<p style="color: #64748b; font-size: 15px; margin-bottom: 22px;">{sub}</p>'
                 '<div style="background: #e2e8f0; height: 16px; border-radius: 8px; overflow: hidden;">'
-                f'<div style="background: linear-gradient(90deg, #2563eb, #10b981); width: {pct}%; height: 100%; border-radius: 8px;"></div>'
+                f'<div style="background: linear-gradient(90deg, #2563eb, #00c853); width: {pct}%; height: 100%; border-radius: 8px;"></div>'
                 '</div>'
-                f'<p style="color: #64748b; font-size: 13px; font-weight: bold; margin-top: 10px;">Progreso: {pct}%</p>'
+                f'<p style="color: #64748b; font-size: 14px; font-weight: bold; margin-top: 10px;">Progreso: {pct}%</p>'
                 '</div>'
             )
             anim_ph.markdown(caja_anim, unsafe_allow_html=True)
@@ -245,17 +246,29 @@ if es_pantalla_live:
 
     categoria = clasificar_score(score_live)
 
-    # ------------------ ESTILO 1: CLÁSICO ACTUAL (LETRAS GIGANTES) ------------------
-    if estilo_code == "1":
+    # BOTONES HORIZONTALES DIRECTOS EN LA PANTALLA PÚBLICA
+    col_nav1, col_nav2, col_nav3 = st.columns([1, 3.5, 1])
+    with col_nav2:
+        estilo_seleccionado = st.radio(
+            "Diseño:",
+            ["1. Clásico Actual", "2. Tarjeta Fintech VIP", "3. Certificado Oficial"],
+            horizontal=True,
+            label_visibility="collapsed"
+        )
+
+    st.write("")
+
+    # ------------------ ESTILO 1: CLÁSICO ACTUAL ------------------
+    if estilo_seleccionado == "1. Clásico Actual":
         col_izq, col_der = st.columns([1, 1], gap="large")
         with col_izq:
             st.markdown("<div class='card-panel'>", unsafe_allow_html=True)
-            st.markdown("<h2 style='margin-top:0; font-size: 28px; font-weight: 900;'>Score Crediticio</h2>", unsafe_allow_html=True)
-            st.markdown("<p style='font-size: 15px; color: #64748b; margin-bottom: 20px;'>Probabilidad de cumplimiento en el sistema financiero.</p>", unsafe_allow_html=True)
+            st.markdown("<h2 style='margin-top:0; font-size: 30px; font-weight: 900;'>Score Crediticio</h2>", unsafe_allow_html=True)
+            st.markdown("<p style='font-size: 15px; color: #64748b; margin-bottom: 22px; font-weight: 600;'>Probabilidad de cumplimiento en el sistema financiero.</p>", unsafe_allow_html=True)
             for r in RANGOS:
                 activo = (r["label"] == categoria["label"])
                 clase = "tier-active" if activo else ""
-                borde = f"border: 3px solid {r['color']};" if activo else "border: 1px solid #cbd5e1;"
+                borde = f"border: 3.5px solid {r['color']};" if activo else "border: 1.5px solid #cbd5e1;"
                 html_card = (
                     f'<div class="tier-card {clase}" style="background-color: {r["color"]}; {borde}">'
                     f'<span>Score: {r["rango_texto"]}</span>'
@@ -267,41 +280,41 @@ if es_pantalla_live:
 
         with col_der:
             st.markdown("<div class='card-panel' style='text-align: center;'>", unsafe_allow_html=True)
-            st.markdown(f"<h1 style='margin: 0; font-size: 48px; font-weight: 900; color: #0f172a;'>¡Hola {nombre_live}!</h1>", unsafe_allow_html=True)
-            st.markdown(f"<h2 style='color: {categoria['color']}; margin-top: 8px; font-size: 32px; font-weight: 900;'>Tu Score es {categoria['label'].replace('Puntaje ', '')}</h2>", unsafe_allow_html=True)
+            st.markdown(f"<h1 style='margin: 0; font-size: 50px; font-weight: 900; color: #0f172a;'>¡Hola {nombre_live}!</h1>", unsafe_allow_html=True)
+            st.markdown(f"<h2 style='color: {categoria['color']}; margin-top: 8px; font-size: 34px; font-weight: 900;'>Tu Score es {categoria['label'].replace('Puntaje ', '')}</h2>", unsafe_allow_html=True)
             html_circle = (
-                f'<div class="circle-container" style="border: 18px solid {categoria["color"]};">'
-                '<span style="color: #64748b; font-size: 18px; font-weight: 700;">Tu score es</span>'
-                f'<span class="circle-score">{score_live}</span>'
-                '<span style="color: #64748b; font-size: 18px; font-weight: 700;">de 999</span>'
+                f'<div class="circle-container" style="border: 20px solid {categoria["color"]};">'
+                '<span style="color: #64748b; font-size: 18px; font-weight: 800;">Tu score es</span>'
+                f'<span class="circle-score" style="color: {categoria["color"]};">{score_live}</span>'
+                '<span style="color: #64748b; font-size: 18px; font-weight: 800;">de 999</span>'
                 '</div>'
             )
             st.markdown(html_circle, unsafe_allow_html=True)
-            st.markdown(f"<h3 style='color: {categoria['color']}; font-weight: 900; font-size: 24px; margin: 10px 0;'>● VERIFICADO</h3>", unsafe_allow_html=True)
+            st.markdown(f"<h3 style='color: {categoria['color']}; font-weight: 900; font-size: 26px; margin: 8px 0;'>● VERIFICADO</h3>", unsafe_allow_html=True)
             st.markdown("</div>", unsafe_allow_html=True)
 
     # ------------------ ESTILO 2: TARJETA FINTECH VIP ------------------
-    if estilo_code == "2":
+    if estilo_seleccionado == "2. Tarjeta Fintech VIP":
         pct = min(max(int((score_live / 999) * 100), 4), 100)
         html_fintech = (
             '<div class="fintech-card">'
             '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">'
-            '<span style="font-size: 15px; color: #94a3b8; font-weight: 800; letter-spacing: 2px;">PASAPORTE FINANCIERO DIGITAL</span>'
-            f'<span style="background: {categoria["color"]}33; color: {categoria["color"]}; border: 2px solid {categoria["color"]}; padding: 6px 16px; border-radius: 20px; font-weight: 900; font-size: 14px;">● {categoria["label"].upper()}</span>'
+            '<span style="font-size: 15px; color: #94a3b8; font-weight: 900; letter-spacing: 2px;">PASAPORTE FINANCIERO DIGITAL</span>'
+            f'<span style="background: {categoria["color"]}33; color: {categoria["color"]}; border: 2.5px solid {categoria["color"]}; padding: 6px 18px; border-radius: 20px; font-weight: 900; font-size: 15px;">● {categoria["label"].upper()}</span>'
             '</div>'
             '<div style="text-align: center; margin: 25px 0;">'
-            '<h3 style="color: #94a3b8; margin: 0; font-size: 18px; font-weight: 600;">Puntaje Crediticio Oficial</h3>'
-            f'<h1 style="font-size: 85px; font-weight: 900; color: white; margin: 5px 0; text-shadow: 0 0 30px {categoria["color"]}66;">{score_live} <span style="font-size: 26px; color: #64748b; font-weight: 600;">/ 999</span></h1>'
-            f'<h1 style="color: {categoria["color"]}; margin: 0; font-size: 42px; font-weight: 900;">¡Hola {nombre_live}!</h1>'
+            '<h3 style="color: #94a3b8; margin: 0; font-size: 18px; font-weight: 700;">Puntaje Crediticio Oficial</h3>'
+            f'<h1 style="font-size: 92px; font-weight: 900; color: {categoria["color"]}; margin: 5px 0; text-shadow: 0 0 35px {categoria["color"]}88;">{score_live} <span style="font-size: 28px; color: #94a3b8; font-weight: 600;">/ 999</span></h1>'
+            f'<h1 style="color: white; margin: 0; font-size: 44px; font-weight: 900;">¡Hola {nombre_live}!</h1>'
             '</div>'
             '<div style="margin-top: 25px;">'
-            '<div style="display: flex; justify-content: space-between; font-size: 13px; color: #94a3b8; font-weight: bold; margin-bottom: 8px;">'
+            '<div style="display: flex; justify-content: space-between; font-size: 14px; color: #94a3b8; font-weight: 800; margin-bottom: 8px;">'
             '<span>0 (Riesgo Alto)</span>'
-            f'<span style="color: {categoria["color"]}; font-size: 15px;">Nivel Actual: {pct}%</span>'
+            f'<span style="color: {categoria["color"]}; font-size: 16px;">Nivel Actual: {pct}%</span>'
             '<span>999 (Excelente)</span>'
             '</div>'
-            '<div style="background: #334155; height: 16px; border-radius: 8px; overflow: hidden;">'
-            f'<div style="background: {categoria["color"]}; width: {pct}%; height: 100%; border-radius: 8px; box-shadow: 0 0 15px {categoria["color"]};"></div>'
+            '<div style="background: #334155; height: 18px; border-radius: 9px; overflow: hidden;">'
+            f'<div style="background: {categoria["color"]}; width: {pct}%; height: 100%; border-radius: 9px; box-shadow: 0 0 20px {categoria["color"]};"></div>'
             '</div>'
             '</div>'
             '</div>'
@@ -310,36 +323,36 @@ if es_pantalla_live:
 
         c1, c2, c3 = st.columns(3)
         with c1:
-            st.markdown(f'<div class="diag-box"><div style="font-size: 32px; margin-bottom: 5px;">🏦</div><div style="font-size: 14px; color: #64748b; font-weight: bold;">Préstamos Personales</div><div style="font-size: 18px; font-weight: 900; color: {categoria["color"]}; margin-top: 6px;">{categoria["prob_prestamo"]}</div></div>', unsafe_allow_html=True)
+            st.markdown(f'<div class="diag-box"><div style="font-size: 34px; margin-bottom: 5px;">🏦</div><div style="font-size: 15px; color: #475569; font-weight: 800;">Préstamos Personales</div><div style="font-size: 20px; font-weight: 900; color: {categoria["color"]}; margin-top: 6px;">{categoria["prob_prestamo"]}</div></div>', unsafe_allow_html=True)
         with c2:
-            st.markdown(f'<div class="diag-box"><div style="font-size: 32px; margin-bottom: 5px;">💳</div><div style="font-size: 14px; color: #64748b; font-weight: bold;">Tarjetas de Crédito</div><div style="font-size: 18px; font-weight: 900; color: {categoria["color"]}; margin-top: 6px;">{categoria["tarjetas"]}</div></div>', unsafe_allow_html=True)
+            st.markdown(f'<div class="diag-box"><div style="font-size: 34px; margin-bottom: 5px;">💳</div><div style="font-size: 15px; color: #475569; font-weight: 800;">Tarjetas de Crédito</div><div style="font-size: 20px; font-weight: 900; color: {categoria["color"]}; margin-top: 6px;">{categoria["tarjetas"]}</div></div>', unsafe_allow_html=True)
         with c3:
-            st.markdown(f'<div class="diag-box"><div style="font-size: 32px; margin-bottom: 5px;">📊</div><div style="font-size: 14px; color: #64748b; font-weight: bold;">Nivel de Riesgo SBS</div><div style="font-size: 18px; font-weight: 900; color: {categoria["color"]}; margin-top: 6px;">{categoria["riesgo"]}</div></div>', unsafe_allow_html=True)
+            st.markdown(f'<div class="diag-box"><div style="font-size: 34px; margin-bottom: 5px;">📊</div><div style="font-size: 15px; color: #475569; font-weight: 800;">Nivel de Riesgo SBS</div><div style="font-size: 20px; font-weight: 900; color: {categoria["color"]}; margin-top: 6px;">{categoria["riesgo"]}</div></div>', unsafe_allow_html=True)
 
     # ------------------ ESTILO 3: CERTIFICADO OFICIAL ------------------
-    if estilo_code == "3":
+    if estilo_seleccionado == "3. Certificado Oficial":
         html_cert = (
             '<div class="cert-container">'
-            '<div style="display: flex; justify-content: space-between; border-bottom: 3px solid #e2e8f0; padding-bottom: 18px;">'
-            '<div><h2 style="margin: 0; color: #1e3a8a; font-size: 26px; font-weight: 900;">REPORTE DE SALUD CREDITICIA</h2><span style="font-size: 14px; color: #64748b; font-weight: bold;">DIAGNÓSTICO INFORMATIVO DE RIESGO</span></div>'
-            '<div style="text-align: right;"><span style="font-size: 14px; font-weight: 900; color: #1e3a8a;">EMISIÓN EN VIVO</span><br><span style="font-size: 13px; color: #059669; font-weight: bold;">● OFICIAL</span></div>'
+            '<div style="display: flex; justify-content: space-between; border-bottom: 3px solid #cbd5e1; padding-bottom: 18px;">'
+            '<div><h2 style="margin: 0; color: #1e3a8a; font-size: 28px; font-weight: 900;">REPORTE DE SALUD CREDITICIA</h2><span style="font-size: 15px; color: #64748b; font-weight: 800;">DIAGNÓSTICO INFORMATIVO DE RIESGO</span></div>'
+            '<div style="text-align: right;"><span style="font-size: 15px; font-weight: 900; color: #1e3a8a;">EMISIÓN EN VIVO</span><br><span style="font-size: 14px; color: #00c853; font-weight: 900;">● OFICIAL</span></div>'
             '</div>'
-            '<div style="margin: 22px 0 10px 0;"><span style="font-size: 15px; color: #64748b; font-weight: bold;">TITULAR CONSULTADO:</span><h1 style="margin: 0; color: #0f172a; font-size: 42px; font-weight: 900;">' + nombre_live + '</h1></div>'
+            '<div style="margin: 22px 0 10px 0;"><span style="font-size: 15px; color: #64748b; font-weight: 800;">TITULAR CONSULTADO:</span><h1 style="margin: 0; color: #0f172a; font-size: 46px; font-weight: 900;">' + nombre_live + '</h1></div>'
             '<div class="cert-score-box">'
-            '<span style="font-size: 15px; color: #64748b; font-weight: 800; letter-spacing: 1px;">PUNTAJE DETERMINADO</span>'
-            f'<h1 style="font-size: 80px; margin: 4px 0; font-weight: 900; color: {categoria["color"]};">{score_live} <span style="font-size: 26px; color: #64748b; font-weight: normal;">pts</span></h1>'
-            f'<div style="display: inline-block; background: {categoria["color"]}22; color: {categoria["color"]}; padding: 6px 22px; border-radius: 20px; font-weight: 900; font-size: 16px; border: 2px solid {categoria["color"]}; margin-top: 5px;">{categoria["label"].upper()}</div>'
+            '<span style="font-size: 16px; color: #64748b; font-weight: 900; letter-spacing: 1px;">PUNTAJE DETERMINADO</span>'
+            f'<h1 style="font-size: 88px; margin: 4px 0; font-weight: 900; color: {categoria["color"]};">{score_live} <span style="font-size: 28px; color: #64748b; font-weight: normal;">pts</span></h1>'
+            f'<div style="display: inline-block; background: {categoria["color"]}22; color: {categoria["color"]}; padding: 6px 24px; border-radius: 20px; font-weight: 900; font-size: 17px; border: 2.5px solid {categoria["color"]}; margin-top: 5px;">{categoria["label"].upper()}</div>'
             '<div class="progress-bar-container">'
-            '<div style="background: #ef4444; flex: 476;"></div><div style="background: #ea580c; flex: 120;"></div><div style="background: #d97706; flex: 123;"></div><div style="background: #10b981; flex: 154;"></div><div style="background: #059669; flex: 122;"></div>'
+            '<div style="background: #ff1744; flex: 476;"></div><div style="background: #ff6d00; flex: 120;"></div><div style="background: #ffb300; flex: 123;"></div><div style="background: #00e676; flex: 154;"></div><div style="background: #00c853; flex: 122;"></div>'
             '</div>'
-            '<div style="display: flex; justify-content: space-between; font-size: 12px; color: #64748b; font-weight: bold;"><span>0</span><span>477</span><span>598</span><span>722</span><span>877</span><span>999</span></div>'
+            '<div style="display: flex; justify-content: space-between; font-size: 13px; color: #475569; font-weight: 900;"><span>0</span><span>477</span><span>598</span><span>722</span><span>877</span><span>999</span></div>'
             '</div>'
-            '<div style="border-top: 2px solid #e2e8f0; padding-top: 18px; font-size: 15px; color: #334155; line-height: 1.6;">'
-            f'<p style="margin: 6px 0;"><b>● Situación Financiera:</b> Comportamiento {categoria["label"].lower()} para operaciones en el sistema financiero.</p>'
+            '<div style="border-top: 2.5px solid #cbd5e1; padding-top: 18px; font-size: 16px; color: #1e293b; line-height: 1.6;">'
+            f'<p style="margin: 6px 0;"><b>● Situación Financiera:</b> Comportamiento {categoria["label"].lower()} para operaciones en el sistema bancario.</p>'
             f'<p style="margin: 6px 0;"><b>● Nivel de Riesgo Buró:</b> Calificado como {categoria["riesgo"].lower()}.</p>'
             f'<p style="margin: 6px 0;"><b>● Capacidad de Acceso:</b> {categoria["prob_prestamo"]}.</p>'
             '</div>'
-            '<div style="margin-top: 20px; background: #f8fafc; border: 1px solid #e2e8f0; padding: 14px; border-radius: 12px; text-align: center; font-size: 13px; font-weight: bold; color: #475569;">🛡️ Verificado con tecnología de consulta instantánea SBS y Buró.</div>'
+            '<div style="margin-top: 20px; background: #f8fafc; border: 2px solid #cbd5e1; padding: 14px; border-radius: 12px; text-align: center; font-size: 14px; font-weight: 800; color: #334155;">🛡️ Verificado con tecnología de consulta instantánea SBS y Buró.</div>'
             '</div>'
         )
         st.markdown(html_cert, unsafe_allow_html=True)
@@ -348,10 +361,10 @@ if es_pantalla_live:
 
 
 # =========================================================================
-# VISTA PRIVADA: TU PANEL DE CONTROL (DONDE SUBES EL PDF Y ELIGES ESTILO)
+# VISTA PRIVADA: TU PANEL DE CONTROL (DONDE SUBES EL PDF)
 # =========================================================================
-st.markdown("<h1 style='text-align: center; font-size: 36px; font-weight: 900;'>🎛️ PANEL DE CONTROL (PRIVADO)</h1>", unsafe_allow_html=True)
-st.caption("Esta pestaña es tu consola de control. Elige el diseño y pulsa el botón para proyectar en la pestaña del Live.")
+st.markdown("<h1 style='text-align: center; font-size: 38px; font-weight: 900;'>🎛️ PANEL DE CONTROL (PRIVADO)</h1>", unsafe_allow_html=True)
+st.caption("Esta pestaña es tu consola privada. Sube el reporte y pulsa el botón para proyectar en la pestaña del Live.")
 
 uploaded_file = st.file_uploader("📂 Sube aquí el PDF del reporte", type=["pdf"])
 
@@ -367,31 +380,18 @@ if uploaded_file:
         if n:
             detected_nombre = n
 
-col_c1, col_c2, col_c3 = st.columns([1.2, 1, 1.4])
+col_c1, col_c2 = st.columns(2)
 with col_c1:
     nombre_final = st.text_input("Nombre detectado (editable):", value=detected_nombre)
 with col_c2:
     score_input = st.number_input("Score detectado (editable):", min_value=0, max_value=999, value=detected_score)
-with col_c3:
-    estilo_opcion = st.selectbox(
-        "Elige el Diseño para el Live:",
-        ["1. Clásico Actual (Grande)", "2. Tarjeta Fintech VIP", "3. Certificado Oficial de Buró"]
-    )
-
-# Mapear opción seleccionada a código numérico seguro
-if "Fintech" in estilo_opcion:
-    codigo_estilo = "2"
-elif "Certificado" in estilo_opcion:
-    codigo_estilo = "3"
-else:
-    codigo_estilo = "1"
 
 score_val = 0 if score_input == 92 else score_input
 
 # Enlace mágico que actualiza la MISMA pestaña del Live
 nombre_encoded = urllib.parse.quote(nombre_final)
 t_now = int(time.time())
-url_live = f"?live=1&nombre={nombre_encoded}&score={score_val}&estilo={codigo_estilo}&t={t_now}"
+url_live = f"?live=1&nombre={nombre_encoded}&score={score_val}&t={t_now}"
 
 boton_html = (
     f'<a href="{url_live}" target="pantalla_live" class="btn-live-link">'
