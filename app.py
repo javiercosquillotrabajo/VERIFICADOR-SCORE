@@ -1,4 +1,5 @@
 import streamlit as st
+import streamlit.components.v1 as components
 import pdfplumber
 import re
 import time
@@ -30,7 +31,6 @@ css_base = (
     ".circle-container { width: 290px; height: 290px; border-radius: 50%; margin: 20px auto; display: flex; flex-direction: column; justify-content: center; align-items: center; background: #ffffff; box-shadow: 0 15px 40px rgba(0,0,0,0.14); }"
     ".circle-score { font-size: 85px; font-weight: 900; line-height: 1; margin: 2px 0; }"
     ".loading-box { background: #ffffff; border: 3.5px solid #2563eb; border-radius: 24px; padding: 45px 30px; text-align: center; margin: 40px auto; max-width: 650px; box-shadow: 0 15px 40px rgba(15,23,42,0.15); }"
-    ".btn-live-link { display: inline-block; width: 100%; background: linear-gradient(90deg, #2563eb, #00c853); color: white !important; text-align: center; padding: 18px 24px; font-size: 18px; font-weight: 900; border-radius: 14px; border: none; cursor: pointer; box-shadow: 0 6px 20px rgba(37,99,235,0.3); margin-top: 15px; }"
     ".fintech-card { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); border: 3px solid #64748b; border-radius: 24px; padding: 32px; max-width: 720px; margin: 0 auto 25px auto; box-shadow: 0 18px 45px rgba(15,23,42,0.25); }"
     ".diag-box { background: #ffffff; border: 2.5px solid #94a3b8; padding: 18px 12px; border-radius: 16px; text-align: center; box-shadow: 0 6px 20px rgba(15,23,42,0.06); }"
     ".cert-container { background: #ffffff; border: 2.5px solid #94a3b8; border-top: 12px solid #1e3a8a; border-radius: 18px; padding: 35px; max-width: 820px; margin: 0 auto; box-shadow: 0 15px 40px rgba(15,23,42,0.1); }"
@@ -258,8 +258,7 @@ if es_pantalla_live:
     # ------------------ ESTILO 1: CLÁSICO ACTUAL ------------------
     if estilo_seleccionado == "1. Clásico Actual":
         col_izq, col_der = st.columns([1, 1], gap="large")
-        
-        # Tarjetas de escala completas en un solo bloque HTML
+
         html_cards = ""
         for r in RANGOS:
             activo = (r["label"] == categoria["label"])
@@ -273,17 +272,17 @@ if es_pantalla_live:
             )
 
         with col_izq:
-            html_bloque_izq = (
+            html_izq = (
                 '<div class="card-panel">'
                 '<h2 style="margin-top:0; font-size: 30px; font-weight: 900;">Score Crediticio</h2>'
                 '<p style="font-size: 15px; color: #64748b; margin-bottom: 22px; font-weight: 600;">Probabilidad de cumplimiento en el sistema financiero.</p>'
                 + html_cards +
                 '</div>'
             )
-            st.markdown(html_bloque_izq, unsafe_allow_html=True)
+            st.markdown(html_izq, unsafe_allow_html=True)
 
         with col_der:
-            html_bloque_der = (
+            html_der = (
                 '<div class="card-panel" style="text-align: center;">'
                 f'<h1 style="margin: 0; font-size: 50px; font-weight: 900; color: #0f172a;">¡Hola {nombre_live}!</h1>'
                 f'<h2 style="color: {categoria["color"]}; margin-top: 8px; font-size: 34px; font-weight: 900;">Tu Score es {categoria["label"].replace("Puntaje ", "")}</h2>'
@@ -295,7 +294,7 @@ if es_pantalla_live:
                 f'<h3 style="color: {categoria["color"]}; font-weight: 900; font-size: 26px; margin: 8px 0;">● VERIFICADO</h3>'
                 '</div>'
             )
-            st.markdown(html_bloque_der, unsafe_allow_html=True)
+            st.markdown(html_der, unsafe_allow_html=True)
 
     # ------------------ ESTILO 2: TARJETA FINTECH VIP ------------------
     if estilo_seleccionado == "2. Tarjeta Fintech VIP":
@@ -392,17 +391,33 @@ with col_c2:
 
 score_val = 0 if score_input == 92 else score_input
 
-# Enlace JavaScript con nombre fijo 'pantalla_live_unica' para que siempre reutilice la misma ventana
+# Dirección completa absoluta para que el navegador ubique la ventana
 nombre_encoded = urllib.parse.quote(nombre_final)
 t_now = int(time.time())
-url_live = f"?live=1&nombre={nombre_encoded}&score={score_val}&t={t_now}"
+url_live_completa = f"https://score-verificador.streamlit.app/?live=1&nombre={nombre_encoded}&score={score_val}&t={t_now}"
 
-boton_html = (
-    f'<button onclick="window.open(\'{url_live}\', \'pantalla_live_unica\');" class="btn-live-link">'
-    f'🚀 ACTUALIZAR VENTANA ÚNICA DEL LIVE'
-    f'</button>'
+# Botón interactivo mediante componente HTML nativo (permite clic inmediato y reutiliza la ventana 'pantalla_live_unica')
+btn_code = (
+    '<!DOCTYPE html><html><head><style>'
+    'body { margin: 0; padding: 0; background: transparent; font-family: "Segoe UI", Tahoma, sans-serif; }'
+    '.btn-live {'
+    '  display: block; width: 100%; border: none; outline: none; cursor: pointer;'
+    '  background: linear-gradient(90deg, #2563eb, #00c853);'
+    '  color: #ffffff; text-align: center;'
+    '  padding: 16px 20px; font-size: 18px; font-weight: 900;'
+    '  border-radius: 14px; text-decoration: none;'
+    '  box-shadow: 0 6px 20px rgba(37,99,235,0.3);'
+    '  transition: transform 0.1s, opacity 0.1s;'
+    '}'
+    '.btn-live:hover { opacity: 0.95; }'
+    '.btn-live:active { transform: scale(0.99); }'
+    '</style></head><body>'
+    f'<button type="button" class="btn-live" onclick="window.open(\'{url_live_completa}\', \'pantalla_live_unica\');">'
+    '🚀 ACTUALIZAR VENTANA ÚNICA DEL LIVE'
+    '</button>'
+    '</body></html>'
 )
-st.markdown(boton_html, unsafe_allow_html=True)
+components.html(btn_code, height=75)
 
 st.markdown("---")
 cat_priv = clasificar_score(score_val)
