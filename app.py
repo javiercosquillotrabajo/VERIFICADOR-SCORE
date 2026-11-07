@@ -326,4 +326,56 @@ if es_pantalla_live:
             f'<h1 style="font-size: 75px; font-weight: 900; color: white; margin: 5px 0;">{score_live} <span style="font-size: 20px; color: #64748b; font-weight: 400;">/ 999</span></h1>'
             f'<h3 style="color: {categoria["color"]}; margin: 0;">¡Hola {nombre_live}!</h3>'
             '</div>'
-            '<div style="m
+            '<div style="margin-top: 20px;">'
+            '<div style="display: flex; justify-content: space-between; font-size: 11px; color: #64748b; margin-bottom: 5px;">'
+            '<span>0 (Riesgo Alto)</span>'
+            f'<span style="color: {categoria["color"]}; font-weight: bold;">Tu nivel actual ({pct}%)</span>'
+            '<span>999 (Excelente)</span>'
+            '</div>'
+            '<div style="background: #334155; height: 12px; border-radius: 6px; overflow: hidden;">'
+            f'<div style="background: {categoria["color"]}; width: {pct}%; height: 100%; border-radius: 6px;"></div>'
+            '</div>'
+            '</div>'
+            '</div>'
+        )
+        st.markdown(html_fintech, unsafe_allow_html=True)
+
+        c1, c2, c3 = st.columns(3)
+        with c1:
+            st.markdown(f'<div class="diag-box"><div style="font-size: 28px;">🏦</div><div style="font-size: 13px; color: #94a3b8;">Préstamos Personales</div><div style="font-size: 16px; font-weight: bold; color: {categoria["color"]};">{categoria["prob_prestamo"]}</div></div>', unsafe_allow_html=True)
+        with c2:
+            st.markdown(f'<div class="diag-box"><div style="font-size: 28px;">💳</div><div style="font-size: 13px; color: #94a3b8;">Tarjetas de Crédito</div><div style="font-size: 16px; font-weight: bold; color: {categoria["color"]};">{categoria["tarjetas"]}</div></div>', unsafe_allow_html=True)
+        with c3:
+            st.markdown(f'<div class="diag-box"><div style="font-size: 28px;">📊</div><div style="font-size: 13px; color: #94a3b8;">Nivel de Riesgo SBS</div><div style="font-size: 16px; font-weight: bold; color: {categoria["color"]};">{categoria["riesgo"]}</div></div>', unsafe_allow_html=True)
+
+    elif estilo_live == "3. Certificado Oficial de Buró":
+        html_cert = (
+            '<div class="cert-container">'
+            '<div style="display: flex; justify-content: space-between; border-bottom: 2px solid #e2e8f0; padding-bottom: 15px;">'
+            '<div><h3 style="margin: 0; color: #1e3a8a; font-weight: 800;">REPORTE DE SALUD CREDITICIA</h3><span style="font-size: 12px; color: #64748b;">DIAGNÓSTICO INFORMATIVO DE RIESGO</span></div>'
+            '<div style="text-align: right;"><span style="font-size: 12px; font-weight: bold; color: #1e3a8a;">EMISIÓN EN LÍNEA</span><br><span style="font-size: 11px; color: #64748b;">ESTADO: OFICIAL</span></div>'
+            '</div>'
+            '<div style="margin: 20px 0 10px 0;"><span style="font-size: 14px; color: #64748b;">TITULAR CONSULTADO:</span><h2 style="margin: 0; color: #0f172a; font-weight: 700;">' + nombre_live + '</h2></div>'
+            '<div class="cert-score-box">'
+            '<span style="font-size: 13px; color: #64748b; font-weight: 600;">PUNTAJE DETERMINADO</span>'
+            f'<h1 style="font-size: 70px; margin: 0; font-weight: 900; color: {categoria["color"]};">{score_live} <span style="font-size: 22px; color: #94a3b8; font-weight: normal;">pts</span></h1>'
+            f'<div style="display: inline-block; background: {categoria["color"]}22; color: {categoria["color"]}; padding: 5px 18px; border-radius: 20px; font-weight: bold; font-size: 14px; border: 1px solid {categoria["color"]}; margin-top: 5px;">{categoria["label"].upper()}</div>'
+            '<div class="progress-bar-container">'
+            '<div style="background: #ef4444; flex: 476;"></div><div style="background: #e67e22; flex: 120;"></div><div style="background: #f59e0b; flex: 123;"></div><div style="background: #1db954; flex: 154;"></div><div style="background: #00c875; flex: 122;"></div>'
+            '</div>'
+            '<div style="display: flex; justify-content: space-between; font-size: 11px; color: #94a3b8;"><span>0</span><span>477</span><span>598</span><span>722</span><span>877</span><span>999</span></div>'
+            '</div>'
+            '<div style="border-top: 1px solid #e2e8f0; padding-top: 15px; font-size: 13px; color: #475569;">'
+            f'<p style="margin: 4px 0;"><b>● Situación Financiera:</b> Comportamiento {categoria["label"].lower()} en el sistema bancario.</p>'
+            f'<p style="margin: 4px 0;"><b>● Nivel de Riesgo Buró:</b> Calificado como {categoria["riesgo"].lower()}.</p>'
+            f'<p style="margin: 4px 0;"><b>● Acceso a Créditos:</b> {categoria["prob_prestamo"]}.</p>'
+            '</div>'
+            '<div style="margin-top: 20px; background: #f1f5f9; padding: 12px; border-radius: 8px; text-align: center; font-size: 11px; color: #64748b;">🛡️ Documento generado con tecnología de verificación instantánea.</div>'
+            '</div>'
+        )
+        st.markdown(html_cert, unsafe_allow_html=True)
+
+# =========================================================================
+# CASO B: ESTAMOS EN TU PESTAÑA PRINCIPAL (TU PANEL DE TRABAJO)
+# =========================================================================
+else
