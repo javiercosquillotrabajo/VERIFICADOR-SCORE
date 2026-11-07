@@ -30,7 +30,7 @@ css_base = (
     ".circle-container { width: 290px; height: 290px; border-radius: 50%; margin: 20px auto; display: flex; flex-direction: column; justify-content: center; align-items: center; background: #ffffff; box-shadow: 0 15px 40px rgba(0,0,0,0.14); }"
     ".circle-score { font-size: 85px; font-weight: 900; line-height: 1; margin: 2px 0; }"
     ".loading-box { background: #ffffff; border: 3.5px solid #2563eb; border-radius: 24px; padding: 45px 30px; text-align: center; margin: 40px auto; max-width: 650px; box-shadow: 0 15px 40px rgba(15,23,42,0.15); }"
-    ".btn-live-link { display: inline-block; width: 100%; background: linear-gradient(90deg, #2563eb, #00c853); color: white !important; text-align: center; padding: 18px 24px; font-size: 18px; font-weight: 900; border-radius: 14px; text-decoration: none; box-shadow: 0 6px 20px rgba(37,99,235,0.3); margin-top: 15px; }"
+    ".btn-live-link { display: inline-block; width: 100%; background: linear-gradient(90deg, #2563eb, #00c853); color: white !important; text-align: center; padding: 18px 24px; font-size: 18px; font-weight: 900; border-radius: 14px; border: none; cursor: pointer; box-shadow: 0 6px 20px rgba(37,99,235,0.3); margin-top: 15px; }"
     ".fintech-card { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); border: 3px solid #64748b; border-radius: 24px; padding: 32px; max-width: 720px; margin: 0 auto 25px auto; box-shadow: 0 18px 45px rgba(15,23,42,0.25); }"
     ".diag-box { background: #ffffff; border: 2.5px solid #94a3b8; padding: 18px 12px; border-radius: 16px; text-align: center; box-shadow: 0 6px 20px rgba(15,23,42,0.06); }"
     ".cert-container { background: #ffffff; border: 2.5px solid #94a3b8; border-top: 12px solid #1e3a8a; border-radius: 18px; padding: 35px; max-width: 820px; margin: 0 auto; box-shadow: 0 15px 40px rgba(15,23,42,0.1); }"
@@ -41,7 +41,6 @@ css_base = (
 )
 st.markdown(css_base, unsafe_allow_html=True)
 
-# COLORES ENCENDIDOS Y SATURADOS
 RANGOS = [
     {"label": "Excelente Puntaje", "min": 877, "max": 999, "color": "#00c853", "rango_texto": "877 - 999", "prob_prestamo": "Alta (Preferencial)", "tarjetas": "Líneas altas", "riesgo": "Mínimo"},
     {"label": "Buen Puntaje",      "min": 722, "max": 876, "color": "#00e676", "rango_texto": "722 - 876", "prob_prestamo": "Alta", "tarjetas": "Aprobación Rápida", "riesgo": "Bajo"},
@@ -195,7 +194,7 @@ def generar_pdf_descarga(nombre, score, categoria):
     return buffer
 
 # =========================================================================
-# VISTA PÚBLICA: PESTAÑA PROYECTORA DEL LIVE (GRIS OFICINA + BOTONES DE ESTILO)
+# VISTA PÚBLICA: PESTAÑA PROYECTORA DEL LIVE (VENTANA ÚNICA)
 # =========================================================================
 if es_pantalla_live:
     css_limpio = (
@@ -216,7 +215,6 @@ if es_pantalla_live:
         score_live = 0
     t_stamp = params.get("t", "0")
 
-    # Animación con suspenso al recibir consulta nueva
     key_anim = f"animada_{t_stamp}"
     if key_anim not in st.session_state:
         anim_ph = st.empty()
@@ -246,7 +244,6 @@ if es_pantalla_live:
 
     categoria = clasificar_score(score_live)
 
-    # BOTONES HORIZONTALES DIRECTOS EN LA PANTALLA PÚBLICA
     col_nav1, col_nav2, col_nav3 = st.columns([1, 3.5, 1])
     with col_nav2:
         estilo_seleccionado = st.radio(
@@ -261,37 +258,44 @@ if es_pantalla_live:
     # ------------------ ESTILO 1: CLÁSICO ACTUAL ------------------
     if estilo_seleccionado == "1. Clásico Actual":
         col_izq, col_der = st.columns([1, 1], gap="large")
+        
+        # Tarjetas de escala completas en un solo bloque HTML
+        html_cards = ""
+        for r in RANGOS:
+            activo = (r["label"] == categoria["label"])
+            clase = "tier-active" if activo else ""
+            borde = f"border: 3.5px solid {r['color']};" if activo else "border: 1.5px solid #cbd5e1;"
+            html_cards += (
+                f'<div class="tier-card {clase}" style="background-color: {r["color"]}; {borde}">'
+                f'<span>Score: {r["rango_texto"]}</span>'
+                f'<span>{r["label"]}</span>'
+                '</div>'
+            )
+
         with col_izq:
-            st.markdown("<div class='card-panel'>", unsafe_allow_html=True)
-            st.markdown("<h2 style='margin-top:0; font-size: 30px; font-weight: 900;'>Score Crediticio</h2>", unsafe_allow_html=True)
-            st.markdown("<p style='font-size: 15px; color: #64748b; margin-bottom: 22px; font-weight: 600;'>Probabilidad de cumplimiento en el sistema financiero.</p>", unsafe_allow_html=True)
-            for r in RANGOS:
-                activo = (r["label"] == categoria["label"])
-                clase = "tier-active" if activo else ""
-                borde = f"border: 3.5px solid {r['color']};" if activo else "border: 1.5px solid #cbd5e1;"
-                html_card = (
-                    f'<div class="tier-card {clase}" style="background-color: {r["color"]}; {borde}">'
-                    f'<span>Score: {r["rango_texto"]}</span>'
-                    f'<span>{r["label"]}</span>'
-                    '</div>'
-                )
-                st.markdown(html_card, unsafe_allow_html=True)
-            st.markdown("</div>", unsafe_allow_html=True)
+            html_bloque_izq = (
+                '<div class="card-panel">'
+                '<h2 style="margin-top:0; font-size: 30px; font-weight: 900;">Score Crediticio</h2>'
+                '<p style="font-size: 15px; color: #64748b; margin-bottom: 22px; font-weight: 600;">Probabilidad de cumplimiento en el sistema financiero.</p>'
+                + html_cards +
+                '</div>'
+            )
+            st.markdown(html_bloque_izq, unsafe_allow_html=True)
 
         with col_der:
-            st.markdown("<div class='card-panel' style='text-align: center;'>", unsafe_allow_html=True)
-            st.markdown(f"<h1 style='margin: 0; font-size: 50px; font-weight: 900; color: #0f172a;'>¡Hola {nombre_live}!</h1>", unsafe_allow_html=True)
-            st.markdown(f"<h2 style='color: {categoria['color']}; margin-top: 8px; font-size: 34px; font-weight: 900;'>Tu Score es {categoria['label'].replace('Puntaje ', '')}</h2>", unsafe_allow_html=True)
-            html_circle = (
+            html_bloque_der = (
+                '<div class="card-panel" style="text-align: center;">'
+                f'<h1 style="margin: 0; font-size: 50px; font-weight: 900; color: #0f172a;">¡Hola {nombre_live}!</h1>'
+                f'<h2 style="color: {categoria["color"]}; margin-top: 8px; font-size: 34px; font-weight: 900;">Tu Score es {categoria["label"].replace("Puntaje ", "")}</h2>'
                 f'<div class="circle-container" style="border: 20px solid {categoria["color"]};">'
                 '<span style="color: #64748b; font-size: 18px; font-weight: 800;">Tu score es</span>'
                 f'<span class="circle-score" style="color: {categoria["color"]};">{score_live}</span>'
                 '<span style="color: #64748b; font-size: 18px; font-weight: 800;">de 999</span>'
                 '</div>'
+                f'<h3 style="color: {categoria["color"]}; font-weight: 900; font-size: 26px; margin: 8px 0;">● VERIFICADO</h3>'
+                '</div>'
             )
-            st.markdown(html_circle, unsafe_allow_html=True)
-            st.markdown(f"<h3 style='color: {categoria['color']}; font-weight: 900; font-size: 26px; margin: 8px 0;'>● VERIFICADO</h3>", unsafe_allow_html=True)
-            st.markdown("</div>", unsafe_allow_html=True)
+            st.markdown(html_bloque_der, unsafe_allow_html=True)
 
     # ------------------ ESTILO 2: TARJETA FINTECH VIP ------------------
     if estilo_seleccionado == "2. Tarjeta Fintech VIP":
@@ -349,8 +353,8 @@ if es_pantalla_live:
             '</div>'
             '<div style="border-top: 2.5px solid #cbd5e1; padding-top: 18px; font-size: 16px; color: #1e293b; line-height: 1.6;">'
             f'<p style="margin: 6px 0;"><b>● Situación Financiera:</b> Comportamiento {categoria["label"].lower()} para operaciones en el sistema bancario.</p>'
-            f'<p style="margin: 6px 0;"><b>● Nivel de Riesgo Buró:</b> Calificado como {categoria["riesgo"].lower()}.</p>'
-            f'<p style="margin: 6px 0;"><b>● Capacidad de Acceso:</b> {categoria["prob_prestamo"]}.</p>'
+            f'<p style="margin: 4px 0;"><b>● Nivel de Riesgo Buró:</b> Calificado como {categoria["riesgo"].lower()}.</p>'
+            f'<p style="margin: 4px 0;"><b>● Capacidad de Acceso:</b> {categoria["prob_prestamo"]}.</p>'
             '</div>'
             '<div style="margin-top: 20px; background: #f8fafc; border: 2px solid #cbd5e1; padding: 14px; border-radius: 12px; text-align: center; font-size: 14px; font-weight: 800; color: #334155;">🛡️ Verificado con tecnología de consulta instantánea SBS y Buró.</div>'
             '</div>'
@@ -361,10 +365,10 @@ if es_pantalla_live:
 
 
 # =========================================================================
-# VISTA PRIVADA: TU PANEL DE CONTROL (DONDE SUBES EL PDF)
+# VISTA PRIVADA: TU PANEL DE CONTROL (CONTROL DE LA VENTANA ÚNICA)
 # =========================================================================
 st.markdown("<h1 style='text-align: center; font-size: 38px; font-weight: 900;'>🎛️ PANEL DE CONTROL (PRIVADO)</h1>", unsafe_allow_html=True)
-st.caption("Esta pestaña es tu consola privada. Sube el reporte y pulsa el botón para proyectar en la pestaña del Live.")
+st.caption("Esta pestaña es tu consola privada. Al pulsar el botón, actualizará la MISMA ventana del Live sin abrir pestañas nuevas.")
 
 uploaded_file = st.file_uploader("📂 Sube aquí el PDF del reporte", type=["pdf"])
 
@@ -388,15 +392,15 @@ with col_c2:
 
 score_val = 0 if score_input == 92 else score_input
 
-# Enlace mágico que actualiza la MISMA pestaña del Live
+# Enlace JavaScript con nombre fijo 'pantalla_live_unica' para que siempre reutilice la misma ventana
 nombre_encoded = urllib.parse.quote(nombre_final)
 t_now = int(time.time())
 url_live = f"?live=1&nombre={nombre_encoded}&score={score_val}&t={t_now}"
 
 boton_html = (
-    f'<a href="{url_live}" target="pantalla_live" class="btn-live-link">'
-    f'🚀 ABRIR / ACTUALIZAR EN PESTAÑA DEL LIVE'
-    f'</a>'
+    f'<button onclick="window.open(\'{url_live}\', \'pantalla_live_unica\');" class="btn-live-link">'
+    f'🚀 ACTUALIZAR VENTANA ÚNICA DEL LIVE'
+    f'</button>'
 )
 st.markdown(boton_html, unsafe_allow_html=True)
 
