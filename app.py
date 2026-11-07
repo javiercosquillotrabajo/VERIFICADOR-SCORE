@@ -31,8 +31,9 @@ css_base = (
     ".circle-container { width: 290px; height: 290px; border-radius: 50%; margin: 20px auto; display: flex; flex-direction: column; justify-content: center; align-items: center; background: #ffffff; box-shadow: 0 15px 40px rgba(0,0,0,0.14); }"
     ".circle-score { font-size: 85px; font-weight: 900; line-height: 1; margin: 2px 0; }"
     ".loading-box { background: #ffffff; border: 3.5px solid #2563eb; border-radius: 24px; padding: 45px 30px; text-align: center; margin: 40px auto; max-width: 650px; box-shadow: 0 15px 40px rgba(15,23,42,0.15); }"
-    ".fintech-card { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); border: 3px solid #64748b; border-radius: 24px; padding: 32px; max-width: 720px; margin: 0 auto 25px auto; box-shadow: 0 18px 45px rgba(15,23,42,0.25); }"
-    ".diag-box { background: #ffffff; border: 2.5px solid #94a3b8; padding: 18px 12px; border-radius: 16px; text-align: center; box-shadow: 0 6px 20px rgba(15,23,42,0.06); }"
+    ".bank-card { background: #ffffff; border: 2px solid #cbd5e1; border-radius: 18px; padding: 20px 24px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 6px 20px rgba(15,23,42,0.06); transition: transform 0.2s; }"
+    ".bank-badge { padding: 8px 18px; border-radius: 25px; font-weight: 900; font-size: 14px; color: #ffffff; text-align: center; letter-spacing: 0.5px; }"
+    ".total-deuda-banner { background: linear-gradient(135deg, #1e3a8a, #0f172a); border-radius: 20px; padding: 24px 30px; color: white; display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; box-shadow: 0 10px 30px rgba(30,58,138,0.25); }"
     ".cert-container { background: #ffffff; border: 2.5px solid #94a3b8; border-top: 12px solid #1e3a8a; border-radius: 18px; padding: 35px; max-width: 820px; margin: 0 auto; box-shadow: 0 15px 40px rgba(15,23,42,0.1); }"
     ".cert-score-box { background: #f8fafc; border: 3px dashed #94a3b8; border-radius: 18px; padding: 25px; text-align: center; margin: 20px 0; }"
     ".progress-bar-container { display: flex; height: 18px; border-radius: 9px; overflow: hidden; margin: 15px 0 6px 0; }"
@@ -48,6 +49,15 @@ RANGOS = [
     {"label": "Puntaje Bajo",      "min": 477, "max": 597, "color": "#ff6d00", "rango_texto": "477 - 597", "prob_prestamo": "Baja", "tarjetas": "Con garantía / aval", "riesgo": "Alto"},
     {"label": "Puntaje Muy Bajo",  "min": 0,   "max": 476, "color": "#ff1744", "rango_texto": "0 - 476",   "prob_prestamo": "No Apto", "tarjetas": "Restringidas", "riesgo": "Crítico"},
 ]
+
+COLORES_SBS = {
+    "NOR": {"nombre": "NORMAL", "color": "#00c853"},
+    "CPP": {"nombre": "CPP", "color": "#ffb300"},
+    "DEF": {"nombre": "DEFICIENTE", "color": "#ff6d00"},
+    "DUD": {"nombre": "DUDOSO", "color": "#ff1744"},
+    "PER": {"nombre": "PÉRDIDA", "color": "#ff1744"},
+    "SCAL": {"nombre": "SIN CALIF.", "color": "#94a3b8"}
+}
 
 def clasificar_score(score):
     for r in RANGOS:
@@ -116,6 +126,97 @@ def extraer_nombre(pdf):
                 return palabras[-1].upper()
 
     return "CLIENTE"
+
+def extraer_deudas_sbs(pdf):
+    """Extrae las deudas por banco del recuadro rojo en la página 3."""
+    pag_deuda = None
+    for pag in pdf.pages:
+        t = pag.extract_text() or ""
+        if "Detalle de la deuda SBS" in t or "SBS/Microfinanzas" in t:
+            pag_deuda = pag
+            break
+
+    if pag_deuda is None and len(pdf.pages) >= 3:
+        pag_deuda = pdf.pages[2]
+    elif pag_deuda is None:
+        return []
+
+    deudas = []
+    tablas = pag_deuda.extract_tables()
+
+    for t in tablas:
+        header_text = " ".join([str(c) for r in t[:3] for c in r if c])
+        if "Entidad" in header_text or "Deuda Anterior" in header_text or "Monto" in header_text:
+            idx_entidad = 0
+            idx_calif = 5
+            idx_monto = 6
+            idx_dias = 7
+
+            for row in t:
+                row_str = " ".join([str(c) for c in row if c])
+                if "Calif" in row_str or "Monto" in row_str:
+                    for i, c in enumerate(row):
+                        if c:
+                            c_clean = str(c).replace("\n", " ").strip()
+                            if "Calif" in c_clean:
+                                idx_calif = i
+                            elif "Monto" in c_clean:
+                                idx_monto = i
+                            elif "Dias" in c_clean:
+                                idx_dias = i
+
+            for row in t:
+                if not row or len(row) <= max(idx_entidad, idx_calif, idx_monto):
+                    continue
+                entidad = str(row[idx_entidad] or "").replace("\n", " ").strip()
+                if not entidad or "Entidad" in entidad or "Detalle" in entidad or "TOTAL" in entidad.upper():
+                    continue
+
+                calif = str(row[idx_calif] or "").replace("\n", "").strip().upper()
+                if not calif or "CALIF" in calif:
+                    calif = "NOR"
+
+                monto = str(row[idx_monto] or "").replace("\n", "").strip()
+                if not monto or "MONTO" in monto.upper():
+                    monto = "0.00"
+
+                dias = "0"
+                if idx_dias < len(row) and row[idx_dias]:
+                    d = str(row[idx_dias]).strip()
+                    if d.isdigit():
+                        dias = d
+
+                deudas.append({
+                    "banco": entidad,
+                    "monto": monto,
+                    "calif": calif,
+                    "dias": dias
+                })
+            if deudas:
+                break
+
+    # Fallback con texto
+    if not deudas:
+        txt = pag_deuda.extract_text() or ""
+        lineas = txt.splitlines()
+        capturando = False
+        for l in lineas:
+            if "Detalle de la deuda SBS" in l or "Entidad" in l:
+                capturando = True
+                continue
+            if capturando:
+                if "TOTAL" in l.upper() or "Detalle de vencidos" in l or "Utilización de Líneas" in l:
+                    break
+                m = re.search(r"^([A-ZÁÉÍÓÚÑ\s\.\/]+?)\s+[\d,]+\.\d{2}.*?(NOR|CPP|DEF|DUD|PER|SCAL)\s+([\d,]+\.\d{2})(?:\s+(\d+))?", l)
+                if m:
+                    deudas.append({
+                        "banco": m.group(1).strip(),
+                        "calif": m.group(2).strip(),
+                        "monto": m.group(3).strip(),
+                        "dias": m.group(4) if m.group(4) else "0"
+                    })
+
+    return deudas
 
 def generar_pdf_descarga(nombre, score, categoria):
     buffer = io.BytesIO()
@@ -214,6 +315,7 @@ if es_pantalla_live:
     except:
         score_live = 0
     t_stamp = params.get("t", "0")
+    bancos_raw = params.get("bancos", "")
 
     key_anim = f"animada_{t_stamp}"
     if key_anim not in st.session_state:
@@ -244,11 +346,12 @@ if es_pantalla_live:
 
     categoria = clasificar_score(score_live)
 
-    col_nav1, col_nav2, col_nav3 = st.columns([1, 3.5, 1])
+    # BOTONES HORIZONTALES: AHORA CON '2. Deudas por Bancos'
+    col_nav1, col_nav2, col_nav3 = st.columns([1, 4.2, 1])
     with col_nav2:
         estilo_seleccionado = st.radio(
             "Diseño:",
-            ["1. Clásico Actual", "2. Tarjeta Fintech VIP", "3. Certificado Oficial"],
+            ["1. Clásico Actual", "2. Deudas por Bancos", "3. Certificado Oficial"],
             horizontal=True,
             label_visibility="collapsed"
         )
@@ -296,41 +399,70 @@ if es_pantalla_live:
             )
             st.markdown(html_der, unsafe_allow_html=True)
 
-    # ------------------ ESTILO 2: TARJETA FINTECH VIP ------------------
-    if estilo_seleccionado == "2. Tarjeta Fintech VIP":
-        pct = min(max(int((score_live / 999) * 100), 4), 100)
-        html_fintech = (
-            '<div class="fintech-card">'
-            '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">'
-            '<span style="font-size: 15px; color: #94a3b8; font-weight: 900; letter-spacing: 2px;">PASAPORTE FINANCIERO DIGITAL</span>'
-            f'<span style="background: {categoria["color"]}33; color: {categoria["color"]}; border: 2.5px solid {categoria["color"]}; padding: 6px 18px; border-radius: 20px; font-weight: 900; font-size: 15px;">● {categoria["label"].upper()}</span>'
+    # ------------------ ESTILO 2: DEUDAS POR BANCOS (RECUADRO ROJO) ------------------
+    if estilo_seleccionado == "2. Deudas por Bancos":
+        lista_deudas = []
+        if bancos_raw:
+            for item in urllib.parse.unquote(bancos_raw).split("~"):
+                partes = item.split("*")
+                if len(partes) >= 4:
+                    lista_deudas.append({
+                        "banco": partes[0],
+                        "monto": partes[1],
+                        "calif": partes[2],
+                        "dias": partes[3]
+                    })
+
+        total_soles = 0.0
+        for d in lista_deudas:
+            try:
+                total_soles += float(d["monto"].replace(",", ""))
+            except:
+                pass
+
+        total_fmt = f"{total_soles:,.2f}"
+
+        html_bancos_body = ""
+        if lista_deudas:
+            for d in lista_deudas:
+                info_sbs = COLORES_SBS.get(d["calif"], COLORES_SBS["NOR"])
+                dias_txt = "Al día (0 días)" if (d["dias"] == "0" or not d["dias"]) else f"{d['dias']} días atraso"
+                html_bancos_body += (
+                    '<div class="bank-card">'
+                    '<div>'
+                    f'<div style="font-size: 20px; font-weight: 900; color: #0f172a; margin-bottom: 4px;">🏦 {d["banco"]}</div>'
+                    f'<div style="font-size: 14px; font-weight: 700; color: #64748b;">Deuda último mes: <span style="font-size: 22px; font-weight: 900; color: #0f172a;">S/ {d["monto"]}</span></div>'
+                    '</div>'
+                    f'<div class="bank-badge" style="background-color: {info_sbs["color"]};">'
+                    f'{info_sbs["nombre"]} • {dias_txt}'
+                    '</div>'
+                    '</div>'
+                )
+        else:
+            html_bancos_body = (
+                '<div style="background: white; border: 2px dashed #94a3b8; border-radius: 18px; padding: 40px; text-align: center;">'
+                '<div style="font-size: 40px; margin-bottom: 10px;">✅</div>'
+                '<h3 style="margin: 0; color: #00c853; font-weight: 900;">NO REGISTRA DEUDAS SBS</h3>'
+                '<p style="color: #64748b; margin-top: 5px; font-weight: bold;">Deuda actual: S/ 0.00 en el sistema financiero.</p>'
+                '</div>'
+            )
+
+        html_bancos_completo = (
+            '<div style="max-width: 900px; margin: 0 auto;">'
+            '<div class="total-deuda-banner">'
+            '<div>'
+            '<div style="font-size: 14px; color: #94a3b8; font-weight: 800; letter-spacing: 1px;">DETALLE DE DEUDA SBS / MICROFINANZAS</div>'
+            f'<div style="font-size: 28px; font-weight: 900; margin-top: 4px; color: white;">{nombre_live}</div>'
             '</div>'
-            '<div style="text-align: center; margin: 25px 0;">'
-            '<h3 style="color: #94a3b8; margin: 0; font-size: 18px; font-weight: 700;">Puntaje Crediticio Oficial</h3>'
-            f'<h1 style="font-size: 92px; font-weight: 900; color: {categoria["color"]}; margin: 5px 0; text-shadow: 0 0 35px {categoria["color"]}88;">{score_live} <span style="font-size: 28px; color: #94a3b8; font-weight: 600;">/ 999</span></h1>'
-            f'<h1 style="color: white; margin: 0; font-size: 44px; font-weight: 900;">¡Hola {nombre_live}!</h1>'
-            '</div>'
-            '<div style="margin-top: 25px;">'
-            '<div style="display: flex; justify-content: space-between; font-size: 14px; color: #94a3b8; font-weight: 800; margin-bottom: 8px;">'
-            '<span>0 (Riesgo Alto)</span>'
-            f'<span style="color: {categoria["color"]}; font-size: 16px;">Nivel Actual: {pct}%</span>'
-            '<span>999 (Excelente)</span>'
-            '</div>'
-            '<div style="background: #334155; height: 18px; border-radius: 9px; overflow: hidden;">'
-            f'<div style="background: {categoria["color"]}; width: {pct}%; height: 100%; border-radius: 9px; box-shadow: 0 0 20px {categoria["color"]};"></div>'
+            '<div style="text-align: right;">'
+            '<div style="font-size: 13px; color: #94a3b8; font-weight: 800;">DEUDA TOTAL REGISTRADA</div>'
+            f'<div style="font-size: 36px; font-weight: 900; color: #38bdf8;">S/ {total_fmt}</div>'
             '</div>'
             '</div>'
+            + html_bancos_body +
             '</div>'
         )
-        st.markdown(html_fintech, unsafe_allow_html=True)
-
-        c1, c2, c3 = st.columns(3)
-        with c1:
-            st.markdown(f'<div class="diag-box"><div style="font-size: 34px; margin-bottom: 5px;">🏦</div><div style="font-size: 15px; color: #475569; font-weight: 800;">Préstamos Personales</div><div style="font-size: 20px; font-weight: 900; color: {categoria["color"]}; margin-top: 6px;">{categoria["prob_prestamo"]}</div></div>', unsafe_allow_html=True)
-        with c2:
-            st.markdown(f'<div class="diag-box"><div style="font-size: 34px; margin-bottom: 5px;">💳</div><div style="font-size: 15px; color: #475569; font-weight: 800;">Tarjetas de Crédito</div><div style="font-size: 20px; font-weight: 900; color: {categoria["color"]}; margin-top: 6px;">{categoria["tarjetas"]}</div></div>', unsafe_allow_html=True)
-        with c3:
-            st.markdown(f'<div class="diag-box"><div style="font-size: 34px; margin-bottom: 5px;">📊</div><div style="font-size: 15px; color: #475569; font-weight: 800;">Nivel de Riesgo SBS</div><div style="font-size: 20px; font-weight: 900; color: {categoria["color"]}; margin-top: 6px;">{categoria["riesgo"]}</div></div>', unsafe_allow_html=True)
+        st.markdown(html_bancos_completo, unsafe_allow_html=True)
 
     # ------------------ ESTILO 3: CERTIFICADO OFICIAL ------------------
     if estilo_seleccionado == "3. Certificado Oficial":
@@ -373,15 +505,19 @@ uploaded_file = st.file_uploader("📂 Sube aquí el PDF del reporte", type=["pd
 
 detected_nombre = "CLIENTE"
 detected_score = 0
+detected_deudas = []
 
 if uploaded_file:
     with pdfplumber.open(uploaded_file) as pdf:
         s = extraer_score_experian(pdf.pages[0])
         n = extraer_nombre(pdf)
+        d_sbs = extraer_deudas_sbs(pdf)
         if s is not None:
             detected_score = s
         if n:
             detected_nombre = n
+        if d_sbs:
+            detected_deudas = d_sbs
 
 col_c1, col_c2 = st.columns(2)
 with col_c1:
@@ -391,12 +527,15 @@ with col_c2:
 
 score_val = 0 if score_input == 92 else score_input
 
-# Dirección completa absoluta para que el navegador ubique la ventana
+# Empaquetar deudas de bancos de forma compacta para la URL
+cadena_deudas = "~".join([f"{d['banco']}*{d['monto']}*{d['calif']}*{d['dias']}" for d in detected_deudas])
+bancos_enc = urllib.parse.quote(cadena_deudas)
+
 nombre_encoded = urllib.parse.quote(nombre_final)
 t_now = int(time.time())
-url_live_completa = f"https://score-verificador.streamlit.app/?live=1&nombre={nombre_encoded}&score={score_val}&t={t_now}"
+url_live_completa = f"https://score-verificador.streamlit.app/?live=1&nombre={nombre_encoded}&score={score_val}&bancos={bancos_enc}&t={t_now}"
 
-# Botón interactivo mediante componente HTML nativo (permite clic inmediato y reutiliza la ventana 'pantalla_live_unica')
+# Botón interactivo nativo HTML que SÍ responde de inmediato y reutiliza la ventana 'pantalla_live_unica'
 btn_code = (
     '<!DOCTYPE html><html><head><style>'
     'body { margin: 0; padding: 0; background: transparent; font-family: "Segoe UI", Tahoma, sans-serif; }'
