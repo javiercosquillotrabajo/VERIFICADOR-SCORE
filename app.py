@@ -34,9 +34,7 @@ css_base = (
     ".bank-card { background: #ffffff; border: 2px solid #94a3b8; border-radius: 18px; padding: 20px 24px; margin-bottom: 14px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 6px 20px rgba(15,23,42,0.06); }"
     ".bank-badge { padding: 10px 20px; border-radius: 25px; font-weight: 900; font-size: 15px; color: #ffffff; text-align: center; letter-spacing: 0.5px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }"
     ".total-deuda-banner { background: linear-gradient(135deg, #1e3a8a, #0f172a); border-radius: 20px; padding: 24px 30px; color: white; display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; box-shadow: 0 10px 30px rgba(30,58,138,0.25); border: 2px solid #3b82f6; }"
-    ".cert-container { background: #ffffff; border: 2.5px solid #94a3b8; border-top: 12px solid #1e3a8a; border-radius: 18px; padding: 35px; max-width: 820px; margin: 0 auto; box-shadow: 0 15px 40px rgba(15,23,42,0.1); }"
-    ".cert-score-box { background: #f8fafc; border: 3px dashed #94a3b8; border-radius: 18px; padding: 25px; text-align: center; margin: 20px 0; }"
-    ".progress-bar-container { display: flex; height: 18px; border-radius: 9px; overflow: hidden; margin: 15px 0 6px 0; }"
+    ".total-vencidos-banner { background: linear-gradient(135deg, #b91c1c, #450a0a); border-radius: 20px; padding: 24px 30px; color: white; display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; box-shadow: 0 10px 30px rgba(185,28,28,0.25); border: 2px solid #ef4444; }"
     "div[data-testid='stRadio'] > div { justify-content: center; gap: 15px; background: #ffffff; padding: 10px 18px; border-radius: 30px; border: 2px solid #94a3b8; box-shadow: 0 4px 15px rgba(0,0,0,0.06); }"
     "</style>"
 )
@@ -128,22 +126,20 @@ def extraer_nombre(pdf):
     return "CLIENTE"
 
 def extraer_deudas_sbs(pdf):
+    """Extrae las deudas bancarias de la Página 3."""
     deudas = []
-    
-    # 1. Determinar páginas candidatas (prioridad página 3 = índice 2)
-    paginas_a_revisar = []
+    paginas = []
     if len(pdf.pages) >= 3:
-        paginas_a_revisar.append(pdf.pages[2])
-    for idx_p, p in enumerate(pdf.pages):
-        if p not in paginas_a_revisar:
-            paginas_a_revisar.append(p)
+        paginas.append(pdf.pages[2])
+    for p in pdf.pages:
+        if p not in paginas:
+            paginas.append(p)
 
-    for pag in paginas_a_revisar:
+    for pag in paginas:
         palabras = pag.extract_words()
         if not palabras:
             continue
 
-        # Reconstruir las filas visuales por su coordenada vertical Y
         filas = []
         for w in sorted(palabras, key=lambda x: (x["top"], x["x0"])):
             if not filas or abs(w["top"] - filas[-1][0]["top"]) > 5:
@@ -157,23 +153,18 @@ def extraer_deudas_sbs(pdf):
             txt_fila = " ".join([w["text"] for w in f_ord])
             lineas_visuales.append(txt_fila)
 
-        # Buscar dentro de las líneas visuales de esta página
         en_tabla = False
         for l in lineas_visuales:
             l_strip = l.strip()
-
             if "Detalle de la deuda SBS" in l_strip or "SBS/Microfinanzas" in l_strip:
                 en_tabla = True
                 continue
 
             if en_tabla:
-                # Fin de la tabla del recuadro rojo
                 if "TOTAL" in l_strip.upper() or "Detalle de vencidos" in l_strip or "Utilización de Líneas" in l_strip:
                     en_tabla = False
                     break
 
-                # Buscar la calificación SBS seguida inmediatamente por el monto
-                # Ej: "... NOR 4,179.29" o "... NOR 4,179.29 15"
                 m_match = re.search(r"\b(NOR|CPP|DEF|DUD|PER|SCAL)\b\s+([\d,]+\.\d{2})(?:\s+(\d{1,4}))?", l_strip)
                 if m_match:
                     calif = m_match.group(1).upper()
@@ -181,7 +172,6 @@ def extraer_deudas_sbs(pdf):
                     dias = m_match.group(3) if m_match.group(3) else "0"
 
                     parte_antes = l_strip[:m_match.start()].strip()
-                    # El nombre del banco es lo que está antes del primer número decimal o fecha
                     m_banco = re.search(r"^([A-ZÁÉÍÓÚÑa-záéíóúñ\s\.\/\-\&]+?)(?=\s+[\d,]+\.\d{2}|\s+\d{2}\/\d{2}\/\d{4})", parte_antes)
                     if m_banco:
                         banco_nom = m_banco.group(1).strip()
@@ -201,6 +191,79 @@ def extraer_deudas_sbs(pdf):
             break
 
     return deudas
+
+def extraer_otras_deudas(pdf):
+    """Extrae deudas comerciales, vencidos y protestos de la Página 3."""
+    vencidos = []
+    paginas = []
+    if len(pdf.pages) >= 3:
+        paginas.append(pdf.pages[2])
+    for p in pdf.pages:
+        if p not in paginas:
+            paginas.append(p)
+
+    for pag in paginas:
+        palabras = pag.extract_words()
+        if not palabras:
+            continue
+
+        filas = []
+        for w in sorted(palabras, key=lambda x: (x["top"], x["x0"])):
+            if not filas or abs(w["top"] - filas[-1][0]["top"]) > 5:
+                filas.append([w])
+            else:
+                filas[-1].append(w)
+
+        lineas_visuales = []
+        for f in filas:
+            f_ord = sorted(f, key=lambda x: x["x0"])
+            txt_fila = " ".join([w["text"] for w in f_ord])
+            lineas_visuales.append(txt_fila)
+
+        en_vencidos = False
+        for l in lineas_visuales:
+            l_strip = l.strip()
+
+            if "Detalle de vencidos" in l_strip or "Documentos impagos" in l_strip or "Protestos" in l_strip:
+                en_vencidos = True
+                continue
+
+            if en_vencidos:
+                # Se detiene si empieza otra sección
+                if "Utilización de Líneas" in l_strip or "Otros documentos" in l_strip or "Semáforos de los" in l_strip or "TOTAL" in l_strip.upper():
+                    en_vencidos = False
+                    break
+
+                # Buscar línea con monto decimal
+                # Formato típico: #Doc | Fuente - Acreedor | Monto | Dias Venc.
+                # Ej: "1 CLARO PERU SAC 350.00 120" o "DOCUMENTOS IMPAGOS TELEFONICA 420.50 90"
+                m_monto = re.search(r"([\d,]+\.\d{2})", l_strip)
+                if m_monto:
+                    monto_val = m_monto.group(1)
+                    pos_monto = m_monto.start()
+
+                    parte_izq = l_strip[:pos_monto].strip()
+                    resto_der = l_strip[m_monto.end():].strip()
+
+                    # Extraer días si existen
+                    m_dias = re.search(r"\b(\d{1,4})\b", resto_der)
+                    dias_val = m_dias.group(1) if m_dias else "30+"
+
+                    # Limpiar nombre del acreedor quitando números de doc al inicio
+                    acreedor_nom = re.sub(r"^\d+\s+", "", parte_izq).strip()
+                    acreedor_nom = re.sub(r"^(#Doc|Fuente|Acreedor|Monto|Dias)\s*", "", acreedor_nom, flags=re.IGNORECASE).strip()
+
+                    if acreedor_nom and len(acreedor_nom) > 2:
+                        vencidos.append({
+                            "acreedor": acreedor_nom,
+                            "monto": monto_val,
+                            "dias": dias_val
+                        })
+
+        if vencidos:
+            break
+
+    return vencidos
 
 def generar_pdf_descarga(nombre, score, categoria):
     buffer = io.BytesIO()
@@ -306,6 +369,7 @@ if es_pantalla_live:
         score_live = 0
     t_stamp = params.get("t", "0")
     bancos_raw = params.get("bancos", "")
+    vencidos_raw = params.get("vencidos", "")
 
     key_anim = f"animada_{t_stamp}"
     if key_anim not in st.session_state:
@@ -336,11 +400,12 @@ if es_pantalla_live:
 
     categoria = clasificar_score(score_live)
 
-    col_nav1, col_nav2, col_nav3 = st.columns([1, 4.2, 1])
+    # 3 BOTONES EN LA PANTALLA PÚBLICA
+    col_nav1, col_nav2, col_nav3 = st.columns([1, 4.5, 1])
     with col_nav2:
         estilo_seleccionado = st.radio(
             "Diseño:",
-            ["1. Clásico Actual", "2. Deudas por Bancos", "3. Certificado Oficial"],
+            ["1. Clásico Actual", "2. Deudas por Bancos", "3. Otras Deudas por Regularizar"],
             horizontal=True,
             label_visibility="collapsed"
         )
@@ -388,7 +453,7 @@ if es_pantalla_live:
             )
             st.markdown(html_der, unsafe_allow_html=True)
 
-    # ------------------ ESTILO 2: DEUDAS POR BANCOS (RECUADRO ROJO) ------------------
+    # ------------------ ESTILO 2: DEUDAS POR BANCOS (SBS) ------------------
     if estilo_seleccionado == "2. Deudas por Bancos":
         lista_deudas = []
         if bancos_raw:
@@ -453,33 +518,69 @@ if es_pantalla_live:
         )
         st.markdown(html_bancos_completo, unsafe_allow_html=True)
 
-    # ------------------ ESTILO 3: CERTIFICADO OFICIAL ------------------
-    if estilo_seleccionado == "3. Certificado Oficial":
-        html_cert = (
-            '<div class="cert-container">'
-            '<div style="display: flex; justify-content: space-between; border-bottom: 3px solid #cbd5e1; padding-bottom: 18px;">'
-            '<div><h2 style="margin: 0; color: #1e3a8a; font-size: 28px; font-weight: 900;">REPORTE DE SALUD CREDITICIA</h2><span style="font-size: 15px; color: #64748b; font-weight: 800;">DIAGNÓSTICO INFORMATIVO DE RIESGO</span></div>'
-            '<div style="text-align: right;"><span style="font-size: 15px; font-weight: 900; color: #1e3a8a;">EMISIÓN EN VIVO</span><br><span style="font-size: 14px; color: #00c853; font-weight: 900;">● OFICIAL</span></div>'
+    # ------------------ ESTILO 3: OTRAS DEUDAS POR REGULARIZAR ------------------
+    if estilo_seleccionado == "3. Otras Deudas por Regularizar":
+        lista_vencidos = []
+        if vencidos_raw:
+            for item in urllib.parse.unquote(vencidos_raw).split("~"):
+                partes = item.split("*")
+                if len(partes) >= 3:
+                    lista_vencidos.append({
+                        "acreedor": partes[0],
+                        "monto": partes[1],
+                        "dias": partes[2]
+                    })
+
+        total_venc_soles = 0.0
+        for v in lista_vencidos:
+            try:
+                total_venc_soles += float(v["monto"].replace(",", ""))
+            except:
+                pass
+
+        total_venc_fmt = f"{total_venc_soles:,.2f}"
+
+        html_vencidos_body = ""
+        if lista_vencidos:
+            for v in lista_vencidos:
+                dias_v = v["dias"]
+                dias_v_txt = f"{dias_v} días vencido" if dias_v.isdigit() else "Impago"
+                html_vencidos_body += (
+                    '<div class="bank-card" style="border: 2px solid #fca5a5;">'
+                    '<div>'
+                    f'<div style="font-size: 22px; font-weight: 900; color: #0f172a; margin-bottom: 5px;">⚠️ {v["acreedor"]}</div>'
+                    f'<div style="font-size: 15px; font-weight: 700; color: #64748b;">Monto vencido: <span style="font-size: 24px; font-weight: 900; color: #dc2626;">S/ {v["monto"]}</span></div>'
+                    '</div>'
+                    '<div class="bank-badge" style="background-color: #dc2626;">'
+                    f'VENCIDO • {dias_v_txt}'
+                    '</div>'
+                    '</div>'
+                )
+        else:
+            html_vencidos_body = (
+                '<div style="background: white; border: 2.5px dashed #94a3b8; border-radius: 20px; padding: 45px; text-align: center;">'
+                '<div style="font-size: 45px; margin-bottom: 10px;">🛡️</div>'
+                '<h2 style="margin: 0; color: #00c853; font-weight: 900;">SIN PROTESTOS NI VENCIDOS COMERCIALES</h2>'
+                '<p style="color: #64748b; margin-top: 8px; font-weight: bold; font-size: 16px;">No registra documentos impagos en cámara de comercio ni servicios (S/ 0.00).</p>'
+                '</div>'
+            )
+
+        html_vencidos_completo = (
+            '<div style="max-width: 900px; margin: 0 auto;">'
+            '<div class="total-vencidos-banner">'
+            '<div>'
+            '<div style="font-size: 14px; color: #fca5a5; font-weight: 800; letter-spacing: 1px;">OTRAS DEUDAS POR REGULARIZAR (PROTESTOS / COMERCIAL)</div>'
+            f'<div style="font-size: 30px; font-weight: 900; margin-top: 4px; color: white;">{nombre_live}</div>'
             '</div>'
-            '<div style="margin: 22px 0 10px 0;"><span style="font-size: 15px; color: #64748b; font-weight: 800;">TITULAR CONSULTADO:</span><h1 style="margin: 0; color: #0f172a; font-size: 46px; font-weight: 900;">' + nombre_live + '</h1></div>'
-            '<div class="cert-score-box">'
-            '<span style="font-size: 16px; color: #64748b; font-weight: 900; letter-spacing: 1px;">PUNTAJE DETERMINADO</span>'
-            f'<h1 style="font-size: 88px; margin: 4px 0; font-weight: 900; color: {categoria["color"]};">{score_live} <span style="font-size: 28px; color: #64748b; font-weight: normal;">pts</span></h1>'
-            f'<div style="display: inline-block; background: {categoria["color"]}22; color: {categoria["color"]}; padding: 6px 24px; border-radius: 20px; font-weight: 900; font-size: 17px; border: 2.5px solid {categoria["color"]}; margin-top: 5px;">{categoria["label"].upper()}</div>'
-            '<div class="progress-bar-container">'
-            '<div style="background: #ff1744; flex: 476;"></div><div style="background: #ff6d00; flex: 120;"></div><div style="background: #ffb300; flex: 123;"></div><div style="background: #00e676; flex: 154;"></div><div style="background: #00c853; flex: 122;"></div>'
+            '<div style="text-align: right;">'
+            '<div style="font-size: 13px; color: #fca5a5; font-weight: 800;">TOTAL PENDIENTE</div>'
+            f'<div style="font-size: 38px; font-weight: 900; color: #fef08a;">S/ {total_venc_fmt}</div>'
             '</div>'
-            '<div style="display: flex; justify-content: space-between; font-size: 13px; color: #475569; font-weight: 900;"><span>0</span><span>477</span><span>598</span><span>722</span><span>877</span><span>999</span></div>'
             '</div>'
-            '<div style="border-top: 2.5px solid #cbd5e1; padding-top: 18px; font-size: 16px; color: #1e293b; line-height: 1.6;">'
-            f'<p style="margin: 6px 0;"><b>● Situación Financiera:</b> Comportamiento {categoria["label"].lower()} para operaciones en el sistema bancario.</p>'
-            f'<p style="margin: 4px 0;"><b>● Nivel de Riesgo Buró:</b> Calificado como {categoria["riesgo"].lower()}.</p>'
-            f'<p style="margin: 4px 0;"><b>● Capacidad de Acceso:</b> {categoria["prob_prestamo"]}.</p>'
-            '</div>'
-            '<div style="margin-top: 20px; background: #f8fafc; border: 2px solid #cbd5e1; padding: 14px; border-radius: 12px; text-align: center; font-size: 14px; font-weight: 800; color: #334155;">🛡️ Verificado con tecnología de consulta instantánea SBS y Buró.</div>'
+            + html_vencidos_body +
             '</div>'
         )
-        st.markdown(html_cert, unsafe_allow_html=True)
+        st.markdown(html_vencidos_completo, unsafe_allow_html=True)
 
     st.stop()
 
@@ -495,18 +596,22 @@ uploaded_file = st.file_uploader("📂 Sube aquí el PDF del reporte", type=["pd
 detected_nombre = "CLIENTE"
 detected_score = 0
 detected_deudas = []
+detected_vencidos = []
 
 if uploaded_file:
     with pdfplumber.open(uploaded_file) as pdf:
         s = extraer_score_experian(pdf.pages[0])
         n = extraer_nombre(pdf)
         d_sbs = extraer_deudas_sbs(pdf)
+        d_venc = extraer_otras_deudas(pdf)
         if s is not None:
             detected_score = s
         if n:
             detected_nombre = n
         if d_sbs:
             detected_deudas = d_sbs
+        if d_venc:
+            detected_vencidos = d_venc
 
 col_c1, col_c2 = st.columns(2)
 with col_c1:
@@ -516,19 +621,31 @@ with col_c2:
 
 score_val = 0 if score_input == 92 else score_input
 
-# Confirmación visible en tu panel de control de los bancos encontrados
-if detected_deudas:
-    nombres_bancos = ", ".join([f"{d['banco']} (S/ {d['monto']})" for d in detected_deudas])
-    st.success(f"✅ Se detectaron {len(detected_deudas)} bancos con deuda en la Página 3: {nombres_bancos}")
-else:
-    st.info("ℹ️ No se detectaron deudas en este reporte o el cliente tiene S/ 0.00.")
+# Confirmaciones visibles en tu panel privado
+col_info1, col_info2 = st.columns(2)
+with col_info1:
+    if detected_deudas:
+        nombres_bancos = ", ".join([f"{d['banco']} (S/ {d['monto']})" for d in detected_deudas])
+        st.success(f"🏦 SBS: {len(detected_deudas)} bancos detectados: {nombres_bancos}")
+    else:
+        st.info("ℹ️ SBS: No registra deudas bancarias (S/ 0.00).")
+
+with col_info2:
+    if detected_vencidos:
+        nombres_venc = ", ".join([f"{v['acreedor']} (S/ {v['monto']})" for v in detected_vencidos])
+        st.warning(f"⚠️ Otras Deudas: {len(detected_vencidos)} detectadas: {nombres_venc}")
+    else:
+        st.info("ℹ️ Otras Deudas: Sin protestos ni vencidos comerciales (S/ 0.00).")
 
 cadena_deudas = "~".join([f"{d['banco']}*{d['monto']}*{d['calif']}*{d['dias']}" for d in detected_deudas])
 bancos_enc = urllib.parse.quote(cadena_deudas)
 
+cadena_vencidos = "~".join([f"{v['acreedor']}*{v['monto']}*{v['dias']}" for v in detected_vencidos])
+vencidos_enc = urllib.parse.quote(cadena_vencidos)
+
 nombre_encoded = urllib.parse.quote(nombre_final)
 t_now = int(time.time())
-url_live_completa = f"https://score-verificador.streamlit.app/?live=1&nombre={nombre_encoded}&score={score_val}&bancos={bancos_enc}&t={t_now}"
+url_live_completa = f"https://score-verificador.streamlit.app/?live=1&nombre={nombre_encoded}&score={score_val}&bancos={bancos_enc}&vencidos={vencidos_enc}&t={t_now}"
 
 btn_code = (
     '<!DOCTYPE html><html><head><style>'
