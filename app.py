@@ -23,22 +23,20 @@ except:
 
 css_base = (
     "<style>"
-    ".stApp { background-color: #cbd5e1; color: #0f172a; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; text-rendering: optimizeLegibility; }"
+    ".stApp { background-color: #cbd5e1; color: #0f172a; -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }"
     "h1, h2, h3, h4, h5, p, span { color: #0f172a; font-family: 'Segoe UI', Tahoma, Arial, sans-serif; }"
-    ".card-panel { background: #ffffff; border: 3px solid #94a3b8; border-radius: 22px; padding: 26px; box-shadow: 0 14px 35px rgba(15,23,42,0.15); }"
-    ".tier-card { padding: 16px 20px; border-radius: 14px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; font-weight: 900; font-size: 18px; color: #ffffff !important; opacity: 0.55; transition: all 0.25s ease; text-shadow: 0 1px 3px rgba(0,0,0,0.3); }"
-    ".tier-active { opacity: 1 !important; transform: scale(1.05); box-shadow: 0 12px 30px rgba(0,0,0,0.35) !important; }"
-    ".circle-container { width: 290px; height: 290px; border-radius: 50%; margin: 20px auto; display: flex; flex-direction: column; justify-content: center; align-items: center; background: #ffffff; box-shadow: 0 16px 45px rgba(0,0,0,0.18); }"
-    ".circle-score { font-size: 88px; font-weight: 900; line-height: 1; margin: 2px 0; }"
-    ".loading-box { background: #ffffff; border: 4px solid #2563eb; border-radius: 24px; padding: 45px 30px; text-align: center; margin: 40px auto; max-width: 650px; box-shadow: 0 16px 45px rgba(15,23,42,0.2); }"
-    ".bank-card { background: #ffffff; border: 2.5px solid #94a3b8; border-radius: 18px; padding: 20px 24px; margin-bottom: 14px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 8px 25px rgba(15,23,42,0.08); }"
-    ".bank-badge { padding: 10px 20px; border-radius: 25px; font-weight: 900; font-size: 15px; color: #ffffff; text-align: center; letter-spacing: 0.5px; box-shadow: 0 4px 14px rgba(0,0,0,0.2); }"
-    ".total-deuda-banner { background: linear-gradient(135deg, #1e3a8a, #0f172a); border-radius: 20px; padding: 24px 30px; color: white; display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; box-shadow: 0 12px 35px rgba(30,58,138,0.3); border: 2.5px solid #3b82f6; }"
-    ".total-vencidos-banner { background: linear-gradient(135deg, #b91c1c, #450a0a); border-radius: 20px; padding: 24px 30px; color: white; display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; box-shadow: 0 12px 35px rgba(185,28,28,0.3); border: 2.5px solid #ef4444; }"
-    ".cert-container { background: #ffffff; border: 2.5px solid #94a3b8; border-top: 12px solid #1e3a8a; border-radius: 18px; padding: 35px; max-width: 820px; margin: 0 auto; box-shadow: 0 15px 40px rgba(15,23,42,0.12); }"
-    ".cert-score-box { background: #f8fafc; border: 3px dashed #94a3b8; border-radius: 18px; padding: 25px; text-align: center; margin: 20px 0; }"
-    ".progress-bar-container { display: flex; height: 18px; border-radius: 9px; overflow: hidden; margin: 15px 0 6px 0; }"
-    "div[data-testid='stRadio'] > div { justify-content: center; gap: 15px; background: #ffffff; padding: 12px 20px; border-radius: 35px; border: 2.5px solid #94a3b8; box-shadow: 0 6px 18px rgba(0,0,0,0.1); }"
+    ".card-panel { background: #ffffff; border: 2.5px solid #64748b; border-radius: 20px; padding: 22px 18px; box-shadow: 0 10px 30px rgba(15,23,42,0.18); }"
+    ".tier-card { padding: 14px 16px; border-radius: 12px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; font-weight: 900; font-size: 16px; color: #ffffff !important; opacity: 0.85; transition: all 0.2s ease; text-shadow: 0 1px 2px rgba(0,0,0,0.4); }"
+    ".tier-active { opacity: 1 !important; transform: scale(1.04); box-shadow: 0 10px 25px rgba(0,0,0,0.35) !important; }"
+    ".circle-container { width: 240px; height: 240px; border-radius: 50%; margin: 15px auto; display: flex; flex-direction: column; justify-content: center; align-items: center; background: #ffffff; box-shadow: 0 12px 35px rgba(0,0,0,0.16); }"
+    ".circle-score { font-size: 82px; font-weight: 900; line-height: 1; margin: 2px 0; }"
+    ".loading-box { background: #ffffff; border: 3.5px solid #2563eb; border-radius: 20px; padding: 35px 20px; text-align: center; margin: 30px auto; max-width: 600px; box-shadow: 0 15px 40px rgba(15,23,42,0.2); }"
+    ".bank-card { background: #ffffff; border: 2.5px solid #64748b; border-radius: 18px; padding: 18px 20px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 8px 25px rgba(15,23,42,0.1); }"
+    ".bank-badge { padding: 10px 18px; border-radius: 25px; font-weight: 900; font-size: 14px; color: #ffffff; text-align: center; letter-spacing: 0.5px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); text-shadow: 0 1px 2px rgba(0,0,0,0.3); }"
+    ".total-deuda-banner { background: linear-gradient(135deg, #1e3a8a, #0f172a); border-radius: 18px; padding: 20px 24px; color: white; display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; box-shadow: 0 10px 30px rgba(30,58,138,0.3); border: 2px solid #3b82f6; }"
+    ".total-vencidos-banner { background: linear-gradient(135deg, #b91c1c, #450a0a); border-radius: 18px; padding: 20px 24px; color: white; display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; box-shadow: 0 10px 30px rgba(185,28,28,0.3); border: 2px solid #ef4444; }"
+    "div[data-testid='stRadio'] > div { justify-content: center; gap: 8px; background: #ffffff; padding: 8px 14px; border-radius: 30px; border: 2px solid #64748b; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }"
+    "div[data-testid='stRadio'] label span { font-weight: 800 !important; font-size: 14px !important; color: #0f172a !important; }"
     "</style>"
 )
 st.markdown(css_base, unsafe_allow_html=True)
@@ -57,7 +55,7 @@ COLORES_SBS = {
     "DEF": {"nombre": "DEFICIENTE", "color": "#ff6d00"},
     "DUD": {"nombre": "DUDOSO", "color": "#ff1744"},
     "PER": {"nombre": "PÉRDIDA", "color": "#ff1744"},
-    "SCAL": {"nombre": "SIN CALIF.", "color": "#94a3b8"}
+    "SCAL": {"nombre": "SIN CALIF.", "color": "#64748b"}
 }
 
 def clasificar_score(score):
@@ -344,7 +342,7 @@ def generar_pdf_descarga(nombre, score, categoria):
     return buffer
 
 # =========================================================================
-# VISTA PÚBLICA: PESTAÑA PROYECTORA DEL LIVE (ALTA NITIDEZ HD)
+# VISTA PÚBLICA: PESTAÑA PROYECTORA DEL LIVE (COMPACTA Y NÍTIDA)
 # =========================================================================
 if es_pantalla_live:
     css_limpio = (
@@ -353,7 +351,7 @@ if es_pantalla_live:
         "header { display: none !important; }"
         "#MainMenu { display: none !important; }"
         "footer { display: none !important; }"
-        ".block-container { padding-top: 1rem !important; max-width: 980px !important; margin: 0 auto !important; }"
+        ".block-container { padding: 0.5rem 0.6rem !important; max-width: 680px !important; margin: 0 auto !important; }"
         "</style>"
     )
     st.markdown(css_limpio, unsafe_allow_html=True)
@@ -379,14 +377,14 @@ if es_pantalla_live:
         for pct, tit, sub in pasos:
             caja_anim = (
                 '<div class="loading-box">'
-                '<div style="font-size: 55px; margin-bottom: 12px;">🛰️</div>'
-                '<h1 style="color: #2563eb; margin: 0; font-size: 32px; font-weight: 900;">CONSULTANDO CENTRAL DE RIESGOS</h1>'
-                f'<h3 style="color: #0f172a; margin: 15px 0 5px 0; font-size: 22px; font-weight: 800;">{tit}</h3>'
-                f'<p style="color: #64748b; font-size: 15px; margin-bottom: 22px;">{sub}</p>'
-                '<div style="background: #e2e8f0; height: 16px; border-radius: 8px; overflow: hidden;">'
-                f'<div style="background: linear-gradient(90deg, #2563eb, #00c853); width: {pct}%; height: 100%; border-radius: 8px;"></div>'
+                '<div style="font-size: 45px; margin-bottom: 8px;">🛰️</div>'
+                '<h2 style="color: #2563eb; margin: 0; font-size: 26px; font-weight: 900;">CONSULTANDO CENTRAL DE RIESGOS</h2>'
+                f'<h4 style="color: #0f172a; margin: 12px 0 4px 0; font-size: 18px; font-weight: 800;">{tit}</h4>'
+                f'<p style="color: #475569; font-size: 14px; margin-bottom: 18px; font-weight: 700;">{sub}</p>'
+                '<div style="background: #e2e8f0; height: 14px; border-radius: 7px; overflow: hidden;">'
+                f'<div style="background: linear-gradient(90deg, #2563eb, #00c853); width: {pct}%; height: 100%; border-radius: 7px;"></div>'
                 '</div>'
-                f'<p style="color: #64748b; font-size: 14px; font-weight: bold; margin-top: 10px;">Progreso: {pct}%</p>'
+                f'<p style="color: #0f172a; font-size: 13px; font-weight: 900; margin-top: 8px;">Progreso: {pct}%</p>'
                 '</div>'
             )
             anim_ph.markdown(caja_anim, unsafe_allow_html=True)
@@ -396,26 +394,25 @@ if es_pantalla_live:
 
     categoria = clasificar_score(score_live)
 
-    col_nav1, col_nav2, col_nav3 = st.columns([1, 5, 1])
-    with col_nav2:
-        estilo_seleccionado = st.radio(
-            "Diseño:",
-            ["1. Clásico Actual", "2. Deudas por Bancos", "3. Otras Deudas por Regularizar"],
-            horizontal=True,
-            label_visibility="collapsed"
-        )
+    # BOTONES COMPACTOS DE 1 SOLA LÍNEA
+    estilo_seleccionado = st.radio(
+        "Diseño:",
+        ["1. Score Crediticio", "2. Deudas Bancarias", "3. Otras Deudas"],
+        horizontal=True,
+        label_visibility="collapsed"
+    )
 
     st.write("")
 
-    # ------------------ ESTILO 1: CLÁSICO ACTUAL ------------------
-    if estilo_seleccionado == "1. Clásico Actual":
-        col_izq, col_der = st.columns([1, 1], gap="large")
+    # ------------------ ESTILO 1: CLÁSICO ACTUAL (COMPACTO) ------------------
+    if estilo_seleccionado == "1. Score Crediticio":
+        col_izq, col_der = st.columns([1, 1], gap="small")
 
         html_cards = ""
         for r in RANGOS:
             activo = (r["label"] == categoria["label"])
             clase = "tier-active" if activo else ""
-            borde = f"border: 3.5px solid {r['color']};" if activo else "border: 1.5px solid #cbd5e1;"
+            borde = f"border: 3.5px solid {r['color']};" if activo else "border: 1.5px solid #64748b;"
             html_cards += (
                 f'<div class="tier-card {clase}" style="background-color: {r["color"]}; {borde}">'
                 f'<span>Score: {r["rango_texto"]}</span>'
@@ -426,8 +423,8 @@ if es_pantalla_live:
         with col_izq:
             html_izq = (
                 '<div class="card-panel">'
-                '<h2 style="margin-top:0; font-size: 30px; font-weight: 900;">Score Crediticio</h2>'
-                '<p style="font-size: 15px; color: #64748b; margin-bottom: 22px; font-weight: 700;">Probabilidad de cumplimiento en el sistema financiero.</p>'
+                '<h2 style="margin-top:0; font-size: 24px; font-weight: 900; color: #0f172a;">Score Crediticio</h2>'
+                '<p style="font-size: 13px; color: #334155; margin-bottom: 16px; font-weight: 800;">Probabilidad de cumplimiento financiero.</p>'
                 + html_cards +
                 '</div>'
             )
@@ -436,20 +433,20 @@ if es_pantalla_live:
         with col_der:
             html_der = (
                 '<div class="card-panel" style="text-align: center;">'
-                f'<h1 style="margin: 0; font-size: 52px; font-weight: 900; color: #0f172a;">¡Hola {nombre_live}!</h1>'
-                f'<h2 style="color: {categoria["color"]}; margin-top: 8px; font-size: 34px; font-weight: 900;">Tu Score es {categoria["label"].replace("Puntaje ", "")}</h2>'
-                f'<div class="circle-container" style="border: 20px solid {categoria["color"]};">'
-                '<span style="color: #64748b; font-size: 18px; font-weight: 800;">Tu score es</span>'
+                f'<h1 style="margin: 0; font-size: 42px; font-weight: 900; color: #0f172a;">¡Hola {nombre_live}!</h1>'
+                f'<h2 style="color: {categoria["color"]}; margin-top: 6px; font-size: 26px; font-weight: 900;">Tu Score es {categoria["label"].replace("Puntaje ", "")}</h2>'
+                f'<div class="circle-container" style="border: 18px solid {categoria["color"]};">'
+                '<span style="color: #475569; font-size: 16px; font-weight: 900;">Tu score es</span>'
                 f'<span class="circle-score" style="color: {categoria["color"]};">{score_live}</span>'
-                '<span style="color: #64748b; font-size: 18px; font-weight: 800;">de 999</span>'
+                '<span style="color: #475569; font-size: 16px; font-weight: 900;">de 999</span>'
                 '</div>'
-                f'<h3 style="color: {categoria["color"]}; font-weight: 900; font-size: 26px; margin: 8px 0;">● VERIFICADO</h3>'
+                f'<h3 style="color: {categoria["color"]}; font-weight: 900; font-size: 22px; margin: 6px 0;">● VERIFICADO</h3>'
                 '</div>'
             )
             st.markdown(html_der, unsafe_allow_html=True)
 
-    # ------------------ ESTILO 2: DEUDAS POR BANCOS (SBS) ------------------
-    if estilo_seleccionado == "2. Deudas por Bancos":
+    # ------------------ ESTILO 2: DEUDAS BANCARIAS (RELLENO VERTICAL) ------------------
+    if estilo_seleccionado == "2. Deudas Bancarias":
         lista_deudas = []
         if bancos_raw:
             for item in urllib.parse.unquote(bancos_raw).split("~"):
@@ -479,8 +476,8 @@ if es_pantalla_live:
                 html_bancos_body += (
                     '<div class="bank-card">'
                     '<div>'
-                    f'<div style="font-size: 22px; font-weight: 900; color: #0f172a; margin-bottom: 5px;">🏦 {d["banco"]}</div>'
-                    f'<div style="font-size: 15px; font-weight: 800; color: #64748b;">Deuda actual: <span style="font-size: 24px; font-weight: 900; color: #0f172a;">S/ {d["monto"]}</span></div>'
+                    f'<div style="font-size: 20px; font-weight: 900; color: #0f172a; margin-bottom: 4px;">🏦 {d["banco"]}</div>'
+                    f'<div style="font-size: 14px; font-weight: 900; color: #334155;">Deuda actual: <span style="font-size: 24px; font-weight: 900; color: #0f172a;">S/ {d["monto"]}</span></div>'
                     '</div>'
                     f'<div class="bank-badge" style="background-color: {info_sbs["color"]};">'
                     f'{info_sbs["nombre"]} • {dias_txt}'
@@ -489,23 +486,23 @@ if es_pantalla_live:
                 )
         else:
             html_bancos_body = (
-                '<div style="background: white; border: 2.5px dashed #94a3b8; border-radius: 20px; padding: 45px; text-align: center;">'
-                '<div style="font-size: 45px; margin-bottom: 10px;">✅</div>'
+                '<div style="background: white; border: 2.5px dashed #64748b; border-radius: 18px; padding: 35px; text-align: center;">'
+                '<div style="font-size: 40px; margin-bottom: 8px;">✅</div>'
                 '<h2 style="margin: 0; color: #00c853; font-weight: 900;">NO REGISTRA DEUDAS SBS</h2>'
-                '<p style="color: #64748b; margin-top: 8px; font-weight: bold; font-size: 16px;">Deuda actual: S/ 0.00 en el sistema financiero.</p>'
+                '<p style="color: #334155; margin-top: 6px; font-weight: 900; font-size: 15px;">Deuda actual: S/ 0.00 en el sistema financiero.</p>'
                 '</div>'
             )
 
         html_bancos_completo = (
-            '<div style="max-width: 900px; margin: 0 auto;">'
+            '<div style="width: 100%;">'
             '<div class="total-deuda-banner">'
             '<div>'
-            '<div style="font-size: 14px; color: #94a3b8; font-weight: 800; letter-spacing: 1px;">DETALLE DE DEUDA SBS / MICROFINANZAS</div>'
-            f'<div style="font-size: 30px; font-weight: 900; margin-top: 4px; color: white;">{nombre_live}</div>'
+            '<div style="font-size: 13px; color: #cbd5e1; font-weight: 900; letter-spacing: 0.5px;">DEUDA SBS / MICROFINANZAS</div>'
+            f'<div style="font-size: 28px; font-weight: 900; margin-top: 2px; color: white;">{nombre_live}</div>'
             '</div>'
             '<div style="text-align: right;">'
-            '<div style="font-size: 13px; color: #94a3b8; font-weight: 800;">DEUDA TOTAL REGISTRADA</div>'
-            f'<div style="font-size: 38px; font-weight: 900; color: #38bdf8;">S/ {total_fmt}</div>'
+            '<div style="font-size: 12px; color: #cbd5e1; font-weight: 900;">DEUDA TOTAL</div>'
+            f'<div style="font-size: 34px; font-weight: 900; color: #38bdf8;">S/ {total_fmt}</div>'
             '</div>'
             '</div>'
             + html_bancos_body +
@@ -513,8 +510,8 @@ if es_pantalla_live:
         )
         st.markdown(html_bancos_completo, unsafe_allow_html=True)
 
-    # ------------------ ESTILO 3: OTRAS DEUDAS POR REGULARIZAR ------------------
-    if estilo_seleccionado == "3. Otras Deudas por Regularizar":
+    # ------------------ ESTILO 3: OTRAS DEUDAS ------------------
+    if estilo_seleccionado == "3. Otras Deudas":
         lista_vencidos = []
         if vencidos_raw:
             for item in urllib.parse.unquote(vencidos_raw).split("~"):
@@ -541,10 +538,10 @@ if es_pantalla_live:
                 dias_v = v["dias"]
                 dias_v_txt = f"{dias_v} días vencido" if dias_v.isdigit() else "Impago"
                 html_vencidos_body += (
-                    '<div class="bank-card" style="border: 2.5px solid #fca5a5;">'
+                    '<div class="bank-card" style="border: 2.5px solid #f87171;">'
                     '<div>'
-                    f'<div style="font-size: 22px; font-weight: 900; color: #0f172a; margin-bottom: 5px;">⚠️ {v["acreedor"]}</div>'
-                    f'<div style="font-size: 15px; font-weight: 800; color: #64748b;">Monto vencido: <span style="font-size: 24px; font-weight: 900; color: #dc2626;">S/ {v["monto"]}</span></div>'
+                    f'<div style="font-size: 20px; font-weight: 900; color: #0f172a; margin-bottom: 4px;">⚠️ {v["acreedor"]}</div>'
+                    f'<div style="font-size: 14px; font-weight: 900; color: #334155;">Monto vencido: <span style="font-size: 24px; font-weight: 900; color: #dc2626;">S/ {v["monto"]}</span></div>'
                     '</div>'
                     '<div class="bank-badge" style="background-color: #dc2626;">'
                     f'VENCIDO • {dias_v_txt}'
@@ -553,23 +550,23 @@ if es_pantalla_live:
                 )
         else:
             html_vencidos_body = (
-                '<div style="background: white; border: 2.5px dashed #94a3b8; border-radius: 20px; padding: 45px; text-align: center;">'
-                '<div style="font-size: 45px; margin-bottom: 10px;">🛡️</div>'
-                '<h2 style="margin: 0; color: #00c853; font-weight: 900;">SIN PROTESTOS NI VENCIDOS COMERCIALES</h2>'
-                '<p style="color: #64748b; margin-top: 8px; font-weight: bold; font-size: 16px;">No registra documentos impagos en cámara de comercio ni servicios (S/ 0.00).</p>'
+                '<div style="background: white; border: 2.5px dashed #64748b; border-radius: 18px; padding: 35px; text-align: center;">'
+                '<div style="font-size: 40px; margin-bottom: 8px;">🛡️</div>'
+                '<h2 style="margin: 0; color: #00c853; font-weight: 900;">SIN PROTESTOS NI VENCIDOS</h2>'
+                '<p style="color: #334155; margin-top: 6px; font-weight: 900; font-size: 15px;">No registra documentos impagos en cámara de comercio (S/ 0.00).</p>'
                 '</div>'
             )
 
         html_vencidos_completo = (
-            '<div style="max-width: 900px; margin: 0 auto;">'
+            '<div style="width: 100%;">'
             '<div class="total-vencidos-banner">'
             '<div>'
-            '<div style="font-size: 14px; color: #fca5a5; font-weight: 800; letter-spacing: 1px;">OTRAS DEUDAS POR REGULARIZAR (PROTESTOS / COMERCIAL)</div>'
-            f'<div style="font-size: 30px; font-weight: 900; margin-top: 4px; color: white;">{nombre_live}</div>'
+            '<div style="font-size: 13px; color: #fca5a5; font-weight: 900; letter-spacing: 0.5px;">OTRAS DEUDAS POR REGULARIZAR</div>'
+            f'<div style="font-size: 28px; font-weight: 900; margin-top: 2px; color: white;">{nombre_live}</div>'
             '</div>'
             '<div style="text-align: right;">'
-            '<div style="font-size: 13px; color: #fca5a5; font-weight: 800;">TOTAL PENDIENTE</div>'
-            f'<div style="font-size: 38px; font-weight: 900; color: #fef08a;">S/ {total_venc_fmt}</div>'
+            '<div style="font-size: 12px; color: #fca5a5; font-weight: 900;">TOTAL PENDIENTE</div>'
+            f'<div style="font-size: 34px; font-weight: 900; color: #fef08a;">S/ {total_venc_fmt}</div>'
             '</div>'
             '</div>'
             + html_vencidos_body +
@@ -598,4 +595,77 @@ if uploaded_file:
         s = extraer_score_experian(pdf.pages[0])
         n = extraer_nombre(pdf)
         d_sbs = extraer_deudas_sbs(pdf)
-        d
+        d_venc = extraer_otras_deudas(pdf)
+        if s is not None:
+            detected_score = s
+        if n:
+            detected_nombre = n
+        if d_sbs:
+            detected_deudas = d_sbs
+        if d_venc:
+            detected_vencidos = d_venc
+
+col_c1, col_c2 = st.columns(2)
+with col_c1:
+    nombre_final = st.text_input("Nombre detectado (editable):", value=detected_nombre)
+with col_c2:
+    score_input = st.number_input("Score detectado (editable):", min_value=0, max_value=999, value=detected_score)
+
+score_val = 0 if score_input == 92 else score_input
+
+col_info1, col_info2 = st.columns(2)
+with col_info1:
+    if detected_deudas:
+        nombres_bancos = ", ".join([f"{d['banco']} (S/ {d['monto']})" for d in detected_deudas])
+        st.success(f"🏦 SBS: {len(detected_deudas)} bancos detectados: {nombres_bancos}")
+    else:
+        st.info("ℹ️ SBS: No registra deudas bancarias (S/ 0.00).")
+
+with col_info2:
+    if detected_vencidos:
+        nombres_venc = ", ".join([f"{v['acreedor']} (S/ {v['monto']})" for v in detected_vencidos])
+        st.warning(f"⚠️ Otras Deudas: {len(detected_vencidos)} detectadas: {nombres_venc}")
+    else:
+        st.info("ℹ️ Otras Deudas: Sin protestos ni vencidos comerciales (S/ 0.00).")
+
+cadena_deudas = "~".join([f"{d['banco']}*{d['monto']}*{d['calif']}*{d['dias']}" for d in detected_deudas])
+bancos_enc = urllib.parse.quote(cadena_deudas)
+
+cadena_vencidos = "~".join([f"{v['acreedor']}*{v['monto']}*{v['dias']}" for v in detected_vencidos])
+vencidos_enc = urllib.parse.quote(cadena_vencidos)
+
+nombre_encoded = urllib.parse.quote(nombre_final)
+t_now = int(time.time())
+url_live_completa = f"https://score-verificador.streamlit.app/?live=1&nombre={nombre_encoded}&score={score_val}&bancos={bancos_enc}&vencidos={vencidos_enc}&t={t_now}"
+
+btn_code = (
+    '<!DOCTYPE html><html><head><style>'
+    'body { margin: 0; padding: 0; background: transparent; font-family: "Segoe UI", Tahoma, sans-serif; }'
+    '.btn-live {'
+    '  display: block; width: 100%; border: none; outline: none; cursor: pointer;'
+    '  background: linear-gradient(90deg, #2563eb, #00c853);'
+    '  color: #ffffff; text-align: center;'
+    '  padding: 16px 20px; font-size: 18px; font-weight: 900;'
+    '  border-radius: 14px; text-decoration: none;'
+    '  box-shadow: 0 6px 20px rgba(37,99,235,0.3);'
+    '  transition: transform 0.1s, opacity 0.1s;'
+    '}'
+    '.btn-live:hover { opacity: 0.95; }'
+    '.btn-live:active { transform: scale(0.99); }'
+    '</style></head><body>'
+    f'<button type="button" class="btn-live" onclick="window.open(\'{url_live_completa}\', \'pantalla_live_unica\');">'
+    '🚀 ACTUALIZAR VENTANA ÚNICA DEL LIVE'
+    '</button>'
+    '</body></html>'
+)
+components.html(btn_code, height=75)
+
+st.markdown("---")
+cat_priv = clasificar_score(score_val)
+pdf_bytes = generar_pdf_descarga(nombre_final, score_val, cat_priv)
+st.download_button(
+    label="📥 Guardar PDF descargable",
+    data=pdf_bytes,
+    file_name=f"Score_{nombre_final}_{score_val}.pdf",
+    mime="application/pdf"
+)
