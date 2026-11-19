@@ -18,8 +18,16 @@ css_base = (
     "<style>"
     ".stApp { background-color: #0a0f1d; color: #ffffff; -webkit-font-smoothing: antialiased; }"
     "h1, h2, h3, h4, h5, p, span { font-family: 'Segoe UI', Tahoma, Arial, sans-serif; }"
-    ".panel-privado-box { background: #111a2e; border: 2px solid #334155; border-radius: 18px; padding: 18px 14px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }"
-    ".pantalla-publica-box { background: #0f172a; border: 2.5px solid #38bdf8; border-radius: 24px; padding: 24px 20px; box-shadow: 0 0 45px rgba(56,189,248,0.2); text-align: center; min-height: 580px; }"
+    ".panel-privado-box { background: #111a2e; border: 2.5px solid #38bdf8; border-radius: 22px; padding: 26px 18px; box-shadow: 0 15px 45px rgba(0,0,0,0.6); min-height: 720px; }"
+    "div[data-testid='stTextInput'] input, div[data-testid='stNumberInput'] input {"
+    "  font-size: 22px !important; font-weight: 900 !important; height: 56px !important; color: #ffffff !important; background-color: #0f172a !important; border: 2px solid #475569 !important; border-radius: 14px !important; padding: 10px 14px !important;"
+    "}"
+    "div[data-testid='stTextInput'] label, div[data-testid='stNumberInput'] label {"
+    "  font-size: 18px !important; font-weight: 900 !important; color: #38bdf8 !important; margin-bottom: 6px !important;"
+    "}"
+    "div[data-testid='stButton'] button {"
+    "  font-size: 18px !important; font-weight: 900 !important; padding: 16px 12px !important; border-radius: 14px !important; margin-top: 6px !important;"
+    "}"
     ".speedometer-card { background: #151e32; border: 2px solid #334155; border-radius: 22px; padding: 24px 18px; margin: 12px auto; max-width: 620px; box-shadow: 0 15px 40px rgba(0,0,0,0.4); text-align: center; }"
     ".bank-card { background: #151e32; border: 2px solid #334155; border-radius: 16px; padding: 16px 20px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 8px 25px rgba(0,0,0,0.3); text-align: left; }"
     ".bank-badge { padding: 8px 16px; border-radius: 20px; font-weight: 900; font-size: 14px; color: #ffffff; text-align: center; }"
@@ -295,19 +303,19 @@ if "modo_suspenso" not in st.session_state:
     st.session_state["modo_suspenso"] = False
 
 # =========================================================================
-# DISTRIBUCIÓN PRINCIPAL: COLUMNA IZQUIERDA (PANEL) vs COLUMNA DERECHA (LIVE)
+# DISTRIBUCIÓN: COLUMNA IZQUIERDA (PANEL MÁS ANCHO Y CÓMODO) vs COLUMNA DERECHA
 # =========================================================================
-col_panel, col_display = st.columns([1, 2.5], gap="medium")
+col_panel, col_display = st.columns([1.1, 2.3], gap="medium")
 
 # =========================================================================
-# 🎛️ LADO IZQUIERDO: HASTA TU LÍNEA AMARILLA (COMPACTO Y PRIVADO)
+# 🎛️ LADO IZQUIERDO: PANEL DE CONTROL GIGANTE Y ESPACIOSO
 # =========================================================================
 with col_panel:
     st.markdown("<div class='panel-privado-box'>", unsafe_allow_html=True)
-    st.markdown("<h3 style='margin:0; color:#38bdf8; font-size:20px; font-weight:900;'>🎛️ PANEL DE CONTROL</h3>", unsafe_allow_html=True)
-    st.caption("Solo para ti. Fuera del encuadre de TikTok.")
+    st.markdown("<h2 style='margin:0 0 6px 0; color:#38bdf8; font-size:24px; font-weight:900;'>🎛️ PANEL PRIVADO</h2>", unsafe_allow_html=True)
+    st.markdown("<p style='font-size:14px; color:#94a3b8; font-weight:bold; margin-bottom:16px;'>Solo para ti (fuera de la transmisión).</p>", unsafe_allow_html=True)
 
-    uploaded_file = st.file_uploader("📂 PDF", type=["pdf"], label_visibility="collapsed")
+    uploaded_file = st.file_uploader("📂 Adjuntar reporte PDF", type=["pdf"])
 
     detected_nombre = st.session_state["live_nombre"]
     detected_score = st.session_state["live_score"]
@@ -327,11 +335,13 @@ with col_panel:
             detected_deudas = d_sbs if d_sbs else []
             detected_vencidos = d_venc if d_venc else []
 
-    nombre_ctrl = st.text_input("Nombre:", value=detected_nombre)
-    score_ctrl = st.number_input("Score:", min_value=0, max_value=999, value=detected_score)
+    st.write("")
+    nombre_ctrl = st.text_input("Nombre del Cliente:", value=detected_nombre)
+    st.write("")
+    score_ctrl = st.number_input("Score / Puntaje:", min_value=0, max_value=999, value=detected_score)
     score_final_ctrl = 0 if score_ctrl == 92 else score_ctrl
 
-    st.write("")
+    st.markdown("<div style='margin-top:20px;'></div>", unsafe_allow_html=True)
     if st.button("🚀 TRANSMITIR EN VIVO", use_container_width=True, type="primary"):
         st.session_state["live_nombre"] = nombre_ctrl
         st.session_state["live_score"] = score_final_ctrl
@@ -340,7 +350,8 @@ with col_panel:
         st.session_state["modo_suspenso"] = False
         st.rerun()
 
-    if st.button("🎭 ACTIVAR SUSPENSO (AGUJA OSCILANDO)", use_container_width=True):
+    st.markdown("<div style='margin-top:8px;'></div>", unsafe_allow_html=True)
+    if st.button("🎭 ACTIVAR SUSPENSO (OSCILAR)", use_container_width=True):
         st.session_state["live_nombre"] = nombre_ctrl
         st.session_state["live_score"] = score_final_ctrl
         st.session_state["live_deudas"] = detected_deudas
@@ -348,13 +359,25 @@ with col_panel:
         st.session_state["modo_suspenso"] = True
         st.rerun()
 
-    st.markdown("<hr style='border-color:#334155; margin:12px 0;'>", unsafe_allow_html=True)
-    st.markdown(f"<div style='font-size:12px;'><b>SBS:</b> {len(detected_deudas)} deudas detectadas</div>", unsafe_allow_html=True)
-    st.markdown(f"<div style='font-size:12px;'><b>Otras:</b> {len(detected_vencidos)} vencidos detectados</div>", unsafe_allow_html=True)
+    st.markdown("<hr style='border-color:#334155; margin:22px 0;'>", unsafe_allow_html=True)
+    st.markdown(
+        f"<div style='background:#0f172a; border:1.5px solid #334155; border-radius:14px; padding:12px 14px; margin-bottom:10px;'>"
+        f"<span style='font-size:16px; font-weight:900; color:#00e676;'>🏦 Deudas SBS:</span> "
+        f"<span style='font-size:18px; font-weight:900; color:#ffffff;'>{len(detected_deudas)} detectadas</span>"
+        f"</div>",
+        unsafe_allow_html=True
+    )
+    st.markdown(
+        f"<div style='background:#0f172a; border:1.5px solid #334155; border-radius:14px; padding:12px 14px;'>"
+        f"<span style='font-size:16px; font-weight:900; color:#f87171;'>⚠️ Otras Deudas:</span> "
+        f"<span style='font-size:18px; font-weight:900; color:#ffffff;'>{len(detected_vencidos)} detectadas</span>"
+        f"</div>",
+        unsafe_allow_html=True
+    )
     st.markdown("</div>", unsafe_allow_html=True)
 
 # =========================================================================
-# 📺 LADO DERECHO: LO QUE CAPTURA TIKTOK LIVE STUDIO (EL SHOW)
+# 📺 LADO DERECHO: PANTALLA EN VIVO (LO QUE CAPTURA TIKTOK STUDIO)
 # =========================================================================
 with col_display:
     nombre_show = st.session_state["live_nombre"]
@@ -365,7 +388,6 @@ with col_display:
 
     cat_show = clasificar_score(score_show)
 
-    # 4 BOTONES DE ENCABEZADO PARA EL PÚBLICO
     estilo_sel = st.radio(
         "Navegación:",
         ["1. Velocímetro SBS", "2. Ficha y Pastillas", "3. Deudas Bancarias", "4. Otras Deudas"],
