@@ -14,6 +14,12 @@ st.set_page_config(
     layout="wide"
 )
 
+try:
+    params = st.query_params
+    es_pantalla_live = (params.get("live", "0") == "1")
+except:
+    es_pantalla_live = False
+
 css_base = (
     "<style>"
     ".stApp { background-color: #0a0f1d; color: #ffffff; -webkit-font-smoothing: antialiased; }"
@@ -46,12 +52,6 @@ css_base = (
     "div[data-testid='stButton'] button {"
     "  padding: 18px 14px !important; border-radius: 18px !important; margin-top: 8px !important; height: auto !important;"
     "}"
-    "div[data-testid='stButton'] button[kind='secondary'] {"
-    "  background-color: #1e293b !important; border: 2.5px solid #fbbf24 !important;"
-    "}"
-    "div[data-testid='stButton'] button[kind='secondary'] p {"
-    "  color: #fbbf24 !important;"
-    "}"
     ".hero-card { background: #151e32; border: 2.5px solid #334155; border-radius: 26px; padding: 30px 22px; margin: 15px auto; max-width: 650px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); text-align: center; }"
     ".circle-container { width: 240px; height: 240px; border-radius: 50%; margin: 16px auto; display: flex; flex-direction: column; justify-content: center; align-items: center; background: #0f172a; box-shadow: 0 15px 40px rgba(0,0,0,0.4); }"
     ".circle-score { font-size: 86px; font-weight: 900; line-height: 1; margin: 2px 0; }"
@@ -60,7 +60,8 @@ css_base = (
     ".brick-pill-active { opacity: 1 !important; transform: scale(1.12); box-shadow: 0 0 30px currentColor !important; border: 3px solid #ffffff !important; }"
     ".stacked-bar { padding: 16px 22px; border-radius: 16px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; font-weight: 900; font-size: 20px; opacity: 0.45; transition: all 0.2s ease; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }"
     ".stacked-bar-active { opacity: 1 !important; transform: scale(1.04); box-shadow: 0 0 30px currentColor !important; border: 3.5px solid #ffffff !important; }"
-    ".bank-card { background: #151e32; border: 2px solid #334155; border-radius: 18px; padding: 18px 22px; margin-bottom: 14px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 8px 25px rgba(0,0,0,0.3); text-align: left; }"
+    ".bank-card { background: #151e32; border: 2px solid #334155; border-radius: 18px; padding: 16px 20px; margin-bottom: 14px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 8px 25px rgba(0,0,0,0.3); text-align: left; }"
+    ".bank-logo-box { background: #ffffff; border-radius: 12px; padding: 6px 10px; display: flex; align-items: center; justify-content: center; min-width: 95px; height: 50px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }"
     ".bank-badge { padding: 10px 18px; border-radius: 22px; font-weight: 900; font-size: 15px; color: #ffffff; text-align: center; }"
     ".total-deuda-banner { background: linear-gradient(135deg, #1e40af, #0f172a); border-radius: 20px; padding: 20px 26px; color: white; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border: 2px solid #38bdf8; }"
     ".total-vencidos-banner { background: linear-gradient(135deg, #b91c1c, #450a0a); border-radius: 20px; padding: 20px 26px; color: white; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border: 2px solid #f87171; }"
@@ -68,16 +69,14 @@ css_base = (
 )
 st.markdown(css_base, unsafe_allow_html=True)
 
-# ESCALA OFICIAL (Orden estándar de Excelente a Muy Bajo)
 RANGOS = [
-    {"label": "Excelente Puntaje", "min": 877, "max": 999, "color": "#00e676", "texto_col": "#000000", "rango_texto": "877 - 999", "corto": "Excelente", "orden": 5},
-    {"label": "Buen Puntaje",      "min": 722, "max": 876, "color": "#10b981", "texto_col": "#ffffff", "rango_texto": "722 - 876", "corto": "Bueno",     "orden": 4},
-    {"label": "Puntaje Medio",     "min": 598, "max": 721, "color": "#fbbf24", "texto_col": "#000000", "rango_texto": "598 - 721", "corto": "Medio",     "orden": 3},
-    {"label": "Puntaje Bajo",      "min": 477, "max": 597, "color": "#f97316", "texto_col": "#ffffff", "rango_texto": "477 - 597", "corto": "Bajo",      "orden": 2},
-    {"label": "Puntaje Muy Bajo",  "min": 0,   "max": 476, "color": "#ef4444", "texto_col": "#ffffff", "rango_texto": "0 - 476",   "corto": "Muy Bajo",  "orden": 1},
+    {"label": "Excelente Puntaje", "min": 877, "max": 999, "color": "#00e676", "texto_col": "#000000", "rango_texto": "877 - 999", "corto": "Excelente"},
+    {"label": "Buen Puntaje",      "min": 722, "max": 876, "color": "#10b981", "texto_col": "#ffffff", "rango_texto": "722 - 876", "corto": "Bueno"},
+    {"label": "Puntaje Medio",     "min": 598, "max": 721, "color": "#fbbf24", "texto_col": "#000000", "rango_texto": "598 - 721", "corto": "Medio"},
+    {"label": "Puntaje Bajo",      "min": 477, "max": 597, "color": "#f97316", "texto_col": "#ffffff", "rango_texto": "477 - 597", "corto": "Bajo"},
+    {"label": "Puntaje Muy Bajo",  "min": 0,   "max": 476, "color": "#ef4444", "texto_col": "#ffffff", "rango_texto": "0 - 476",   "corto": "Muy Bajo"},
 ]
 
-# LADRILLOS HORIZONTALES: DE IZQUIERDA (ROJO) A DERECHA (VERDE)
 LADRILLOS_ROJO_A_VERDE = [
     {"label": "Puntaje Muy Bajo", "rango": "0 - 476",   "nombre": "MUY BAJO",  "color": "#ef4444", "texto": "#ffffff"},
     {"label": "Puntaje Bajo",     "rango": "477 - 597", "nombre": "BAJO",      "color": "#f97316", "texto": "#ffffff"},
@@ -94,6 +93,36 @@ COLORES_SBS = {
     "PER": {"nombre": "PÉRDIDA", "color": "#ef4444", "texto": "#ffffff"},
     "SCAL": {"nombre": "SIN CALIF.", "color": "#64748b", "texto": "#ffffff"}
 }
+
+LOGOS_BANCOS = {
+    "BCP": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/Logo_credito.gif/320px-Logo_credito.gif",
+    "INTERBANK": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b9/Interbank_Logo.jpg/320px-Interbank_Logo.jpg",
+    "BBVA": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/05/BBVA_2019.svg/320px-BBVA_2019.svg.png",
+    "FALABELLA": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e3/Banco_Falabella_Logo.svg/320px-Banco_Falabella_Logo.svg.png",
+    "SCOTIABANK": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/Scotiabank_logo.svg/320px-Scotiabank_logo.svg.png",
+    "RIPLEY": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/86/Banco_Ripley_logo.svg/320px-Banco_Ripley_logo.svg.png",
+    "PICHINCHA": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/75/Banco_Pichincha_logo.svg/320px-Banco_Pichincha_logo.svg.png",
+    "MIBANCO": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Mibanco_logo.png/320px-Mibanco_logo.png",
+    "BANBIF": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f0/Logo_BanBif.png/320px-Logo_BanBif.png",
+    "COMPARTAMOS": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/07/Compartamos_Banco_Logo.png/320px-Compartamos_Banco_Logo.png",
+    "OH": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/Tarjeta_oh%21_logo.png/320px-Tarjeta_oh%21_logo.png"
+}
+
+def obtener_logo_html(banco_nom):
+    nom_upper = banco_nom.upper()
+    url_img = None
+    
+    for clave, url in LOGOS_BANCOS.items():
+        if clave in nom_upper or (clave == "BCP" and ("CREDITO" in nom_upper or "CRÉDITO" in nom_upper)):
+            url_img = url
+            break
+            
+    if url_img:
+        return f'<div class="bank-logo-box"><img src="{url_img}" style="max-height: 36px; max-width: 90px; object-fit: contain;"></div>'
+    
+    # Si es una Caja Municipal u otra entidad sin logo alojado
+    sigla = "CMAC" if "CMAC" in nom_upper or "CAJA" in nom_upper else "BANCO"
+    return f'<div class="bank-logo-box" style="background:#0f172a; border:1.5px solid #38bdf8;"><span style="color:#38bdf8; font-weight:900; font-size:15px;">🏦 {sigla}</span></div>'
 
 def clasificar_score(score):
     for r in RANGOS:
@@ -315,7 +344,7 @@ if "estilo_seleccionado" not in st.session_state:
 col_panel, col_display = st.columns([1.1, 2.3], gap="large")
 
 # =========================================================================
-# 🎛️ LADO IZQUIERDO: PANEL DE CONTROL EN LETRAS GIGANTES Y MÁXIMA NITIDEZ
+# 🎛️ LADO IZQUIERDO: PANEL DE CONTROL (CON MEMORIA CACHÉ ULTRA RÁPIDA)
 # =========================================================================
 with col_panel:
     st.markdown("<h1 style='margin:0 0 2px 0; color:#38bdf8; font-size:32px; font-weight:900;'>🎛️ PANEL PRIVADO</h1>", unsafe_allow_html=True)
@@ -323,23 +352,26 @@ with col_panel:
 
     uploaded_file = st.file_uploader("📂 Adjuntar reporte PDF", type=["pdf"])
 
-    detected_nombre = st.session_state["live_nombre"]
-    detected_score = st.session_state["live_score"]
-    detected_deudas = st.session_state["live_deudas"]
-    detected_vencidos = st.session_state["live_vencidos"]
-
+    # PROCESAMIENTO CON MEMORIA CACHÉ (SOLO ESCANEA EL PDF CUANDO ES UN ARCHIVO NUEVO)
     if uploaded_file:
-        with pdfplumber.open(uploaded_file) as pdf:
-            s = extraer_score_experian(pdf.pages[0])
-            n = extraer_nombre(pdf)
-            d_sbs = extraer_deudas_sbs(pdf)
-            d_venc = extraer_otras_deudas(pdf)
-            if s is not None:
-                detected_score = s
-            if n:
-                detected_nombre = n
-            detected_deudas = d_sbs if d_sbs else []
-            detected_vencidos = d_venc if d_venc else []
+        file_id = f"{uploaded_file.name}_{uploaded_file.size}"
+        if st.session_state.get("cached_file_id") != file_id:
+            with pdfplumber.open(uploaded_file) as pdf:
+                st.session_state["cached_score"] = extraer_score_experian(pdf.pages[0])
+                st.session_state["cached_nombre"] = extraer_nombre(pdf)
+                st.session_state["cached_deudas"] = extraer_deudas_sbs(pdf)
+                st.session_state["cached_vencidos"] = extraer_otras_deudas(pdf)
+                st.session_state["cached_file_id"] = file_id
+
+        detected_nombre = st.session_state.get("cached_nombre", "CLIENTE")
+        detected_score = st.session_state.get("cached_score", 0)
+        detected_deudas = st.session_state.get("cached_deudas", [])
+        detected_vencidos = st.session_state.get("cached_vencidos", [])
+    else:
+        detected_nombre = st.session_state["live_nombre"]
+        detected_score = st.session_state["live_score"]
+        detected_deudas = st.session_state["live_deudas"]
+        detected_vencidos = st.session_state["live_vencidos"]
 
     st.write("")
     nombre_ctrl = st.text_input("Nombre del Cliente:", value=detected_nombre)
@@ -353,6 +385,7 @@ with col_panel:
     opciones_vistas = ["1. Ladrillos Horizontales", "2. Niveles Verticales", "3. Deudas Bancarias", "4. Otras Deudas"]
     idx_def = opciones_vistas.index(st.session_state["estilo_seleccionado"]) if st.session_state["estilo_seleccionado"] in opciones_vistas else 0
 
+    # CAMBIO INSTANTÁNEO EN MILISEGUNDOS
     estilo_sel = st.radio(
         "Seleccionar vista:",
         opciones_vistas,
@@ -369,7 +402,7 @@ with col_panel:
         st.session_state["live_vencidos"] = detected_vencidos
         st.rerun()
 
-    st.markdown("<hr style='border-color:#334155; margin:22px 0;'>", unsafe_allow_html=True)
+    st.markdown("<hr style='border-color:#334155; margin:20px 0;'>", unsafe_allow_html=True)
     st.markdown(
         f"<div style='background:#0f172a; border:2.5px solid #334155; border-radius:18px; padding:16px 18px; margin-bottom:12px;'>"
         f"<div style='font-size:18px; font-weight:900; color:#00e676; margin-bottom:4px;'>🏦 DEUDAS SBS:</div>"
@@ -457,7 +490,7 @@ with col_display:
         )
         st.markdown(card_vertical, unsafe_allow_html=True)
 
-    # ==================== VISTA 3: DEUDAS BANCARIAS ====================
+    # ==================== VISTA 3: DEUDAS BANCARIAS (CON LOGOS REALES) ====================
     elif estilo_activo == "3. Deudas Bancarias":
         total_soles = 0.0
         for d in deudas_show:
@@ -472,11 +505,16 @@ with col_display:
             for d in deudas_show:
                 info_sbs = COLORES_SBS.get(d["calif"], COLORES_SBS["NOR"])
                 dias_txt = "Al día (0 días)" if (d["dias"] == "0" or not d["dias"]) else f"{d['dias']} días atraso"
+                logo_banco_html = obtener_logo_html(d["banco"])
+
                 html_bancos += (
                     '<div class="bank-card">'
+                    '<div style="display: flex; align-items: center; gap: 14px;">'
+                    + logo_banco_html +
                     '<div>'
-                    f'<div style="font-size: 22px; font-weight: 900; color: #ffffff; margin-bottom: 4px;">🏦 {d["banco"]}</div>'
-                    f'<div style="font-size: 15px; font-weight: 900; color: #94a3b8;">Deuda actual: <span style="font-size: 26px; font-weight: 900; color: #38bdf8;">S/ {d["monto"]}</span></div>'
+                    f'<div style="font-size: 20px; font-weight: 900; color: #ffffff; margin-bottom: 2px;">{d["banco"]}</div>'
+                    f'<div style="font-size: 14px; font-weight: 800; color: #94a3b8;">Deuda actual: <span style="font-size: 24px; font-weight: 900; color: #38bdf8;">S/ {d["monto"]}</span></div>'
+                    '</div>'
                     '</div>'
                     f'<div class="bank-badge" style="background-color: {info_sbs["color"]}; color: {info_sbs["texto"]};">'
                     f'{info_sbs["nombre"]} • {dias_txt}'
