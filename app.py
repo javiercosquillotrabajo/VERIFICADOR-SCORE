@@ -20,25 +20,31 @@ css_base = (
     "h1, h2, h3, h4, h5, p, span { font-family: 'Segoe UI', Tahoma, Arial, sans-serif; }"
     "div[data-testid='column']:nth-of-type(1) {"
     "  background: #111a2e;"
-    "  border: 2px solid #334155;"
+    "  border: 2.5px solid #38bdf8;"
     "  border-radius: 24px;"
     "  padding: 26px 20px;"
-    "  box-shadow: 0 15px 45px rgba(0,0,0,0.5);"
+    "  box-shadow: 0 15px 45px rgba(0,0,0,0.6);"
     "}"
     "div[data-testid='stTextInput'] input, div[data-testid='stNumberInput'] input {"
-    "  font-size: 26px !important; font-weight: 900 !important; height: 64px !important; color: #ffffff !important; background-color: #0f172a !important; border: 2.5px solid #475569 !important; border-radius: 16px !important; padding: 12px 18px !important;"
+    "  font-size: 26px !important; font-weight: 900 !important; height: 64px !important; color: #ffffff !important; background-color: #0f172a !important; border: 2.5px solid #475569 !important; border-radius: 16px !important; padding: 10px 16px !important;"
     "}"
     "div[data-testid='stTextInput'] label, div[data-testid='stNumberInput'] label {"
-    "  font-size: 22px !important; font-weight: 900 !important; color: #38bdf8 !important; margin-bottom: 8px !important;"
+    "  font-size: 22px !important; font-weight: 900 !important; color: #38bdf8 !important; margin-bottom: 6px !important;"
     "}"
     "div[data-testid='stButton'] button {"
-    "  font-size: 21px !important; font-weight: 900 !important; padding: 18px 14px !important; border-radius: 16px !important; margin-top: 10px !important;"
+    "  font-size: 20px !important; font-weight: 900 !important; padding: 16px 14px !important; border-radius: 16px !important; margin-top: 8px !important;"
     "}"
-    ".speedometer-card { background: #151e32; border: 2px solid #334155; border-radius: 22px; padding: 24px 18px; margin: 12px auto; max-width: 620px; box-shadow: 0 15px 40px rgba(0,0,0,0.4); text-align: center; }"
-    ".bank-card { background: #151e32; border: 2px solid #334155; border-radius: 16px; padding: 16px 20px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 8px 25px rgba(0,0,0,0.3); text-align: left; }"
-    ".bank-badge { padding: 8px 16px; border-radius: 20px; font-weight: 900; font-size: 14px; color: #ffffff; text-align: center; }"
-    ".total-deuda-banner { background: linear-gradient(135deg, #1e40af, #0f172a); border-radius: 18px; padding: 18px 24px; color: white; display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; border: 2px solid #38bdf8; }"
-    ".total-vencidos-banner { background: linear-gradient(135deg, #b91c1c, #450a0a); border-radius: 18px; padding: 18px 24px; color: white; display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; border: 2px solid #f87171; }"
+    "div[data-testid='stRadio'] label span {"
+    "  font-size: 19px !important; font-weight: 900 !important; color: #ffffff !important; padding-left: 6px !important;"
+    "}"
+    "div[data-testid='stRadio'] > div {"
+    "  background: #0f172a !important; border: 2px solid #334155 !important; border-radius: 18px !important; padding: 12px 14px !important; gap: 12px !important;"
+    "}"
+    ".speedometer-card { background: #151e32; border: 2.5px solid #334155; border-radius: 26px; padding: 30px 20px; margin: 15px auto; max-width: 640px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); text-align: center; }"
+    ".bank-card { background: #151e32; border: 2px solid #334155; border-radius: 18px; padding: 18px 22px; margin-bottom: 14px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 8px 25px rgba(0,0,0,0.3); text-align: left; }"
+    ".bank-badge { padding: 10px 18px; border-radius: 22px; font-weight: 900; font-size: 15px; color: #ffffff; text-align: center; }"
+    ".total-deuda-banner { background: linear-gradient(135deg, #1e40af, #0f172a); border-radius: 20px; padding: 20px 26px; color: white; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border: 2px solid #38bdf8; }"
+    ".total-vencidos-banner { background: linear-gradient(135deg, #b91c1c, #450a0a); border-radius: 20px; padding: 20px 26px; color: white; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border: 2px solid #f87171; }"
     "@keyframes agujaOscilar {"
     "  0% { transform: rotate(-65deg); }"
     "  25% { transform: rotate(15deg); }"
@@ -48,8 +54,6 @@ css_base = (
     "}"
     ".needle-anim { animation: agujaOscilar 2s ease-in-out infinite; transform-origin: 200px 180px; }"
     ".needle-locked { transform-origin: 200px 180px; transition: transform 1.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); }"
-    "div[data-testid='stRadio'] > div { justify-content: center; gap: 8px; background: #151e32; padding: 8px 14px; border-radius: 30px; border: 2px solid #334155; }"
-    "div[data-testid='stRadio'] label span { font-weight: 900 !important; font-size: 13px !important; color: #f8fafc !important; }"
     "</style>"
 )
 st.markdown(css_base, unsafe_allow_html=True)
@@ -255,7 +259,7 @@ def extraer_otras_deudas(pdf):
                     acreedor_nom = re.sub(r"^\d+\s+", "", parte_izq).strip()
                     acreedor_nom = re.sub(r"^(#Doc|Fuente|Acreedor|Monto|Dias)\s*", "", acreedor_nom, flags=re.IGNORECASE).strip()
 
-                    # Filtrar si el acreedor es solo una fecha (ej: 20/10/2026) o si el monto es 0.00
+                    # Filtrar si es una fecha (ej: 20/10/2026) o monto 0.00
                     if re.match(r"^\d{1,2}/\d{1,2}/\d{2,4}$", acreedor_nom):
                         continue
                     try:
@@ -281,7 +285,7 @@ def generar_svg_velocimetro(angulo, esta_oscilando):
     clase_aguja = "needle-anim" if esta_oscilando else "needle-locked"
     estilo_rot = "" if esta_oscilando else f"transform: rotate({angulo}deg);"
     svg = (
-        '<svg viewBox="0 0 400 220" width="100%" style="max-width: 440px; margin: 0 auto; display: block;">'
+        '<svg viewBox="0 0 400 220" width="100%" style="max-width: 460px; margin: 0 auto; display: block;">'
         '<defs>'
         '<filter id="glow"><feGaussianBlur stdDeviation="3" result="coloredBlur"/><feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>'
         '</defs>'
@@ -290,18 +294,18 @@ def generar_svg_velocimetro(angulo, esta_oscilando):
         '<path d="M 163.5 32 A 150 150 0 0 1 236.5 32" fill="none" stroke="#ffcc00" stroke-width="36"/>'
         '<path d="M 236.5 32 A 150 150 0 0 1 306.1 74" fill="none" stroke="#f37023" stroke-width="36"/>'
         '<path d="M 306.1 74 A 150 150 0 0 1 350 180" fill="none" stroke="#ed1c24" stroke-width="36"/>'
-        '<text x="42" y="196" fill="#94a3b8" font-size="12" font-weight="bold">Normal</text>'
-        '<text x="70" y="48" fill="#94a3b8" font-size="11" font-weight="bold">Problemas</text>'
-        '<text x="70" y="60" fill="#94a3b8" font-size="11" font-weight="bold">potenciales</text>'
-        '<text x="175" y="20" fill="#94a3b8" font-size="12" font-weight="bold">Deficiente</text>'
-        '<text x="295" y="55" fill="#94a3b8" font-size="12" font-weight="bold">Dudoso</text>'
-        '<text x="325" y="196" fill="#94a3b8" font-size="12" font-weight="bold">Pérdida</text>'
+        '<text x="40" y="198" fill="#94a3b8" font-size="13" font-weight="900">Normal</text>'
+        '<text x="68" y="46" fill="#94a3b8" font-size="12" font-weight="900">Problemas</text>'
+        '<text x="68" y="60" fill="#94a3b8" font-size="12" font-weight="900">potenciales</text>'
+        '<text x="172" y="18" fill="#94a3b8" font-size="13" font-weight="900">Deficiente</text>'
+        '<text x="295" y="55" fill="#94a3b8" font-size="13" font-weight="900">Dudoso</text>'
+        '<text x="325" y="198" fill="#94a3b8" font-size="13" font-weight="900">Pérdida</text>'
         f'<g class="{clase_aguja}" style="{estilo_rot}">'
         '<polygon points="200,45 194,180 206,180" fill="#cbd5e1" filter="url(#glow)"/>'
         '<circle cx="200" cy="180" r="16" fill="#475569"/>'
         '<circle cx="200" cy="180" r="8" fill="#38bdf8"/>'
         '</g>'
-        '<text x="200" y="215" fill="#38bdf8" font-size="14" font-weight="900" text-anchor="middle" letter-spacing="1">CATEGORÍAS DE RIESGO</text>'
+        '<text x="200" y="215" fill="#38bdf8" font-size="15" font-weight="900" text-anchor="middle" letter-spacing="1">CATEGORÍAS DE RIESGO</text>'
         '</svg>'
     )
     return svg
@@ -317,18 +321,17 @@ if "live_vencidos" not in st.session_state:
     st.session_state["live_vencidos"] = []
 if "modo_suspenso" not in st.session_state:
     st.session_state["modo_suspenso"] = False
+if "estilo_seleccionado" not in st.session_state:
+    st.session_state["estilo_seleccionado"] = "1. Velocímetro SBS"
 
-# =========================================================================
-# DISTRIBUCIÓN: COLUMNA IZQUIERDA (PANEL PRIVADO) vs COLUMNA DERECHA (LIVE)
-# =========================================================================
 col_panel, col_display = st.columns([1.1, 2.3], gap="large")
 
 # =========================================================================
-# 🎛️ LADO IZQUIERDO: PANEL DE CONTROL ESPACIOSO (SIN CUADRO FANTASMA)
+# 🎛️ LADO IZQUIERDO: PANEL DE CONTROL CON LETRAS GIGANTES Y EL SELECTOR
 # =========================================================================
 with col_panel:
-    st.markdown("<h2 style='margin:0 0 4px 0; color:#38bdf8; font-size:28px; font-weight:900;'>🎛️ PANEL PRIVADO</h2>", unsafe_allow_html=True)
-    st.markdown("<p style='font-size:15px; color:#94a3b8; font-weight:bold; margin-bottom:18px;'>Consola de control (fuera de cámara).</p>", unsafe_allow_html=True)
+    st.markdown("<h2 style='margin:0 0 2px 0; color:#38bdf8; font-size:30px; font-weight:900;'>🎛️ PANEL PRIVADO</h2>", unsafe_allow_html=True)
+    st.markdown("<p style='font-size:16px; color:#94a3b8; font-weight:bold; margin-bottom:14px;'>Consola de control (fuera de cámara).</p>", unsafe_allow_html=True)
 
     uploaded_file = st.file_uploader("📂 Adjuntar reporte PDF", type=["pdf"])
 
@@ -356,7 +359,19 @@ with col_panel:
     score_ctrl = st.number_input("Score / Puntaje:", min_value=0, max_value=999, value=detected_score)
     score_final_ctrl = 0 if score_ctrl == 92 else score_ctrl
 
-    st.markdown("<div style='margin-top:22px;'></div>", unsafe_allow_html=True)
+    st.write("")
+    st.markdown("<p style='font-size:20px; font-weight:900; color:#38bdf8; margin: 10px 0 6px 0;'>📺 Vista para la transmisión:</p>", unsafe_allow_html=True)
+    
+    # LA BARRA DE LOS 4 PUNTOS AHORA ESTÁ AQUÍ EN TAMAÑO GRANDE
+    estilo_sel = st.radio(
+        "Seleccionar vista:",
+        ["1. Velocímetro SBS", "2. Ficha y Pastillas", "3. Deudas Bancarias", "4. Otras Deudas"],
+        index=["1. Velocímetro SBS", "2. Ficha y Pastillas", "3. Deudas Bancarias", "4. Otras Deudas"].index(st.session_state["estilo_seleccionado"]),
+        label_visibility="collapsed"
+    )
+    st.session_state["estilo_seleccionado"] = estilo_sel
+
+    st.markdown("<div style='margin-top:16px;'></div>", unsafe_allow_html=True)
     if st.button("🚀 TRANSMITIR EN VIVO", use_container_width=True, type="primary"):
         st.session_state["live_nombre"] = nombre_ctrl
         st.session_state["live_score"] = score_final_ctrl
@@ -365,8 +380,12 @@ with col_panel:
         st.session_state["modo_suspenso"] = False
         st.rerun()
 
-    st.markdown("<div style='margin-top:8px;'></div>", unsafe_allow_html=True)
-    if st.button("🎭 ACTIVAR SUSPENSO (OSCILAR)", use_container_width=True):
+    st.markdown("<div style='margin-top:6px;'></div>", unsafe_allow_html=True)
+    # BOTÓN DE SUSPENSO VISIBLE Y EN DORADO
+    btn_susp = (
+        '<button onclick="window.location.reload();" style="display:none;"></button>'
+    )
+    if st.button("🎭 ACTIVAR SUSPENSO (AGUJA OSCILANDO)", use_container_width=True):
         st.session_state["live_nombre"] = nombre_ctrl
         st.session_state["live_score"] = score_final_ctrl
         st.session_state["live_deudas"] = detected_deudas
@@ -374,24 +393,24 @@ with col_panel:
         st.session_state["modo_suspenso"] = True
         st.rerun()
 
-    st.markdown("<hr style='border-color:#334155; margin:24px 0;'>", unsafe_allow_html=True)
+    st.markdown("<hr style='border-color:#334155; margin:18px 0;'>", unsafe_allow_html=True)
     st.markdown(
-        f"<div style='background:#0f172a; border:2px solid #334155; border-radius:16px; padding:16px 18px; margin-bottom:12px;'>"
-        f"<div style='font-size:16px; font-weight:900; color:#00e676; margin-bottom:4px;'>🏦 DEUDAS SBS:</div>"
+        f"<div style='background:#0f172a; border:2px solid #334155; border-radius:16px; padding:14px 16px; margin-bottom:10px;'>"
+        f"<div style='font-size:16px; font-weight:900; color:#00e676;'>🏦 DEUDAS SBS:</div>"
         f"<div style='font-size:22px; font-weight:900; color:#ffffff;'>{len(detected_deudas)} detectadas</div>"
         f"</div>",
         unsafe_allow_html=True
     )
     st.markdown(
-        f"<div style='background:#0f172a; border:2px solid #334155; border-radius:16px; padding:16px 18px;'>"
-        f"<div style='font-size:16px; font-weight:900; color:#f87171; margin-bottom:4px;'>⚠️ OTRAS DEUDAS:</div>"
+        f"<div style='background:#0f172a; border:2px solid #334155; border-radius:16px; padding:14px 16px;'>"
+        f"<div style='font-size:16px; font-weight:900; color:#f87171;'>⚠️ OTRAS DEUDAS:</div>"
         f"<div style='font-size:22px; font-weight:900; color:#ffffff;'>{len(detected_vencidos)} detectadas</div>"
         f"</div>",
         unsafe_allow_html=True
     )
 
 # =========================================================================
-# 📺 LADO DERECHO: PANTALLA EN VIVO (LO QUE CAPTURA TIKTOK STUDIO)
+# 📺 LADO DERECHO: PANTALLA EN VIVO 100% LIMPIA (SIN BARRA SUPERIOR)
 # =========================================================================
 with col_display:
     nombre_show = st.session_state["live_nombre"]
@@ -399,58 +418,50 @@ with col_display:
     deudas_show = st.session_state["live_deudas"]
     vencidos_show = st.session_state["live_vencidos"]
     suspenso = st.session_state["modo_suspenso"]
+    estilo_activo = st.session_state["estilo_seleccionado"]
 
     cat_show = clasificar_score(score_show)
 
-    estilo_sel = st.radio(
-        "Navegación:",
-        ["1. Velocímetro SBS", "2. Ficha y Pastillas", "3. Deudas Bancarias", "4. Otras Deudas"],
-        horizontal=True,
-        label_visibility="collapsed"
-    )
-
-    st.write("")
-
     # ==================== VISTA 1: VELOCÍMETRO SBS CON AGUJA ====================
-    if estilo_sel == "1. Velocímetro SBS":
+    if estilo_activo == "1. Velocímetro SBS":
         svg_gauge = generar_svg_velocimetro(cat_show["angle"], suspenso)
         texto_estado = "● OSCILANDO - EVALUANDO RIESGO EN VIVO..." if suspenso else f"● {cat_show['label'].upper()} ({cat_show['sbs']})"
         color_estado = "#ffcc00" if suspenso else cat_show["color"]
 
         card_velocimetro = (
             '<div class="speedometer-card">'
-            f'<h1 style="margin: 0; font-size: 48px; font-weight: 900; color: #ffffff;">¡Hola {nombre_show}!</h1>'
-            f'<h3 style="color: {color_estado}; margin: 6px 0 14px 0; font-size: 24px; font-weight: 900;">{texto_estado}</h3>'
+            f'<h1 style="margin: 0; font-size: 52px; font-weight: 900; color: #ffffff;">¡Hola {nombre_show}!</h1>'
+            f'<h3 style="color: {color_estado}; margin: 8px 0 16px 0; font-size: 26px; font-weight: 900;">{texto_estado}</h3>'
             + svg_gauge +
-            f'<div style="background: #0f172a; border: 2.5px solid {cat_show["color"]}; border-radius: 18px; padding: 14px 20px; display: inline-block; margin-top: 15px; box-shadow: 0 0 25px {cat_show["color"]}44;">'
-            f'<span style="font-size: 14px; color: #94a3b8; font-weight: 800; display: block;">SCORE ASIGNADO</span>'
-            f'<span style="font-size: 64px; font-weight: 900; color: {cat_show["color"]}; line-height: 1;">{score_show}</span>'
-            f'<span style="font-size: 14px; color: #94a3b8; font-weight: 800;"> / 999 pts</span>'
+            f'<div style="background: #0f172a; border: 3px solid {cat_show["color"]}; border-radius: 20px; padding: 16px 24px; display: inline-block; margin-top: 18px; box-shadow: 0 0 30px {cat_show["color"]}44;">'
+            f'<span style="font-size: 15px; color: #94a3b8; font-weight: 900; display: block; letter-spacing:1px;">SCORE ASIGNADO</span>'
+            f'<span style="font-size: 72px; font-weight: 900; color: {cat_show["color"]}; line-height: 1;">{score_show}</span>'
+            f'<span style="font-size: 16px; color: #94a3b8; font-weight: 900;"> / 999 pts</span>'
             f'</div>'
             '</div>'
         )
         st.markdown(card_velocimetro, unsafe_allow_html=True)
 
     # ==================== VISTA 2: FICHA Y PASTILLAS ====================
-    elif estilo_sel == "2. Ficha y Pastillas":
+    elif estilo_activo == "2. Ficha y Pastillas":
         html_pills = ""
         for r in RANGOS:
             es_act = (r["label"] == cat_show["label"])
             opacidad = "1 !important; transform: scale(1.08); border: 2.5px solid #ffffff;" if es_act else "0.35;"
-            html_pills += f'<div style="flex:1; padding: 10px 4px; border-radius: 10px; font-size: 12px; font-weight: 900; background:{r["color"]}; color:{r["color"]}; opacity:{opacidad}; text-align:center;">{r["sbs"]}</div>'
+            html_pills += f'<div style="flex:1; padding: 12px 4px; border-radius: 12px; font-size: 13px; font-weight: 900; background:{r["color"]}; color:{r["color"]}; opacity:{opacidad}; text-align:center;">{r["sbs"]}</div>'
 
         card_ficha = (
             '<div class="speedometer-card">'
-            f'<h1 style="margin: 0; font-size: 48px; font-weight: 900; color: #ffffff;">¡Hola {nombre_show}!</h1>'
-            f'<h2 style="color: {cat_show["color"]}; margin-top: 6px; font-size: 28px; font-weight: 900;">Tu Score es {cat_show["label"].replace("Puntaje ", "")}</h2>'
-            f'<div style="width: 210px; height: 210px; border-radius: 50%; margin: 15px auto; display: flex; flex-direction: column; justify-content: center; align-items: center; background: #0f172a; border: 16px solid {cat_show["color"]}; box-shadow: 0 0 35px {cat_show["color"]}44;">'
-            f'<span style="color: #94a3b8; font-size: 14px; font-weight: 800;">Tu score es</span>'
-            f'<span style="font-size: 72px; font-weight: 900; color: {cat_show["color"]}; line-height:1;">{score_show}</span>'
-            f'<span style="color: #94a3b8; font-size: 14px; font-weight: 800;">de 999</span>'
+            f'<h1 style="margin: 0; font-size: 52px; font-weight: 900; color: #ffffff;">¡Hola {nombre_show}!</h1>'
+            f'<h2 style="color: {cat_show["color"]}; margin-top: 6px; font-size: 30px; font-weight: 900;">Tu Score es {cat_show["label"].replace("Puntaje ", "")}</h2>'
+            f'<div style="width: 230px; height: 230px; border-radius: 50%; margin: 18px auto; display: flex; flex-direction: column; justify-content: center; align-items: center; background: #0f172a; border: 18px solid {cat_show["color"]}; box-shadow: 0 0 40px {cat_show["color"]}44;">'
+            f'<span style="color: #94a3b8; font-size: 16px; font-weight: 900;">Tu score es</span>'
+            f'<span style="font-size: 80px; font-weight: 900; color: {cat_show["color"]}; line-height:1;">{score_show}</span>'
+            f'<span style="color: #94a3b8; font-size: 16px; font-weight: 900;">de 999</span>'
             f'</div>'
-            f'<h3 style="color: {cat_show["color"]}; font-weight: 900; font-size: 20px; margin: 4px 0 14px 0;">● VERIFICADO POR BURÓ</h3>'
-            '<div style="border-top: 2px solid #334155; padding-top: 14px;">'
-            '<div style="font-size: 12px; font-weight: 900; color: #94a3b8; letter-spacing: 1px; margin-bottom: 8px;">NIVELES DE CALIFICACIÓN SBS</div>'
+            f'<h3 style="color: {cat_show["color"]}; font-weight: 900; font-size: 22px; margin: 4px 0 16px 0;">● VERIFICADO POR BURÓ</h3>'
+            '<div style="border-top: 2px solid #334155; padding-top: 16px;">'
+            '<div style="font-size: 13px; font-weight: 900; color: #94a3b8; letter-spacing: 1px; margin-bottom: 10px;">NIVELES DE CALIFICACIÓN SBS</div>'
             '<div style="display: flex; gap: 6px; justify-content: space-between;">'
             + html_pills +
             '</div>'
@@ -460,7 +471,7 @@ with col_display:
         st.markdown(card_ficha, unsafe_allow_html=True)
 
     # ==================== VISTA 3: DEUDAS BANCARIAS ====================
-    elif estilo_sel == "3. Deudas Bancarias":
+    elif estilo_activo == "3. Deudas Bancarias":
         total_soles = 0.0
         for d in deudas_show:
             try:
@@ -477,8 +488,8 @@ with col_display:
                 html_bancos += (
                     '<div class="bank-card">'
                     '<div>'
-                    f'<div style="font-size: 20px; font-weight: 900; color: #ffffff; margin-bottom: 4px;">🏦 {d["banco"]}</div>'
-                    f'<div style="font-size: 14px; font-weight: 800; color: #94a3b8;">Deuda actual: <span style="font-size: 24px; font-weight: 900; color: #38bdf8;">S/ {d["monto"]}</span></div>'
+                    f'<div style="font-size: 22px; font-weight: 900; color: #ffffff; margin-bottom: 4px;">🏦 {d["banco"]}</div>'
+                    f'<div style="font-size: 15px; font-weight: 900; color: #94a3b8;">Deuda actual: <span style="font-size: 26px; font-weight: 900; color: #38bdf8;">S/ {d["monto"]}</span></div>'
                     '</div>'
                     f'<div class="bank-badge" style="background-color: {info_sbs["color"]};">'
                     f'{info_sbs["nombre"]} • {dias_txt}'
@@ -488,22 +499,22 @@ with col_display:
         else:
             html_bancos = (
                 '<div style="background: #151e32; border: 2.5px dashed #334155; border-radius: 20px; padding: 40px; text-align: center;">'
-                '<div style="font-size: 40px; margin-bottom: 8px;">✅</div>'
+                '<div style="font-size: 45px; margin-bottom: 8px;">✅</div>'
                 '<h2 style="margin: 0; color: #00a650; font-weight: 900;">NO REGISTRA DEUDAS SBS</h2>'
-                '<p style="color: #94a3b8; margin-top: 6px; font-size: 15px;">Deuda actual: S/ 0.00 en el sistema financiero.</p>'
+                '<p style="color: #94a3b8; margin-top: 6px; font-size: 16px;">Deuda actual: S/ 0.00 en el sistema financiero.</p>'
                 '</div>'
             )
 
         st.markdown(
-            '<div style="max-width: 620px; margin: 0 auto;">'
+            '<div style="max-width: 640px; margin: 0 auto;">'
             '<div class="total-deuda-banner">'
             '<div>'
-            '<div style="font-size: 12px; color: #cbd5e1; font-weight: 900;">DEUDA SBS / MICROFINANZAS</div>'
-            f'<div style="font-size: 26px; font-weight: 900; color: white;">{nombre_show}</div>'
+            '<div style="font-size: 13px; color: #cbd5e1; font-weight: 900;">DEUDA SBS / MICROFINANZAS</div>'
+            f'<div style="font-size: 28px; font-weight: 900; color: white;">{nombre_show}</div>'
             '</div>'
             '<div style="text-align: right;">'
-            '<div style="font-size: 11px; color: #cbd5e1; font-weight: 900;">DEUDA TOTAL</div>'
-            f'<div style="font-size: 32px; font-weight: 900; color: #38bdf8;">S/ {total_fmt}</div>'
+            '<div style="font-size: 12px; color: #cbd5e1; font-weight: 900;">DEUDA TOTAL</div>'
+            f'<div style="font-size: 34px; font-weight: 900; color: #38bdf8;">S/ {total_fmt}</div>'
             '</div>'
             '</div>'
             + html_bancos +
@@ -512,7 +523,7 @@ with col_display:
         )
 
     # ==================== VISTA 4: OTRAS DEUDAS ====================
-    elif estilo_sel == "4. Otras Deudas":
+    elif estilo_activo == "4. Otras Deudas":
         total_venc_soles = 0.0
         for v in vencidos_show:
             try:
@@ -527,10 +538,10 @@ with col_display:
                 dias_v = v["dias"]
                 dias_v_txt = f"{dias_v} días vencido" if dias_v.isdigit() else "Impago"
                 html_vencidos += (
-                    '<div class="bank-card" style="border: 2px solid #ed1c24;">'
+                    '<div class="bank-card" style="border: 2.5px solid #ed1c24;">'
                     '<div>'
-                    f'<div style="font-size: 20px; font-weight: 900; color: #ffffff; margin-bottom: 4px;">⚠️ {v["acreedor"]}</div>'
-                    f'<div style="font-size: 14px; font-weight: 800; color: #94a3b8;">Monto vencido: <span style="font-size: 24px; font-weight: 900; color: #ed1c24;">S/ {v["monto"]}</span></div>'
+                    f'<div style="font-size: 22px; font-weight: 900; color: #ffffff; margin-bottom: 4px;">⚠️ {v["acreedor"]}</div>'
+                    f'<div style="font-size: 15px; font-weight: 900; color: #94a3b8;">Monto vencido: <span style="font-size: 26px; font-weight: 900; color: #ed1c24;">S/ {v["monto"]}</span></div>'
                     '</div>'
                     '<div class="bank-badge" style="background-color: #ed1c24;">'
                     f'VENCIDO • {dias_v_txt}'
@@ -540,22 +551,22 @@ with col_display:
         else:
             html_vencidos = (
                 '<div style="background: #151e32; border: 2.5px dashed #334155; border-radius: 20px; padding: 40px; text-align: center;">'
-                '<div style="font-size: 40px; margin-bottom: 8px;">🛡️</div>'
+                '<div style="font-size: 45px; margin-bottom: 8px;">🛡️</div>'
                 '<h2 style="margin: 0; color: #00a650; font-weight: 900;">SIN PROTESTOS NI VENCIDOS</h2>'
-                '<p style="color: #94a3b8; margin-top: 6px; font-size: 15px;">No registra documentos impagos en cámara de comercio.</p>'
+                '<p style="color: #94a3b8; margin-top: 6px; font-size: 16px;">No registra documentos impagos en cámara de comercio.</p>'
                 '</div>'
             )
 
         st.markdown(
-            '<div style="max-width: 620px; margin: 0 auto;">'
+            '<div style="max-width: 640px; margin: 0 auto;">'
             '<div class="total-vencidos-banner">'
             '<div>'
-            '<div style="font-size: 12px; color: #fca5a5; font-weight: 900;">OTRAS DEUDAS POR REGULARIZAR</div>'
-            f'<div style="font-size: 26px; font-weight: 900; color: white;">{nombre_show}</div>'
+            '<div style="font-size: 13px; color: #fca5a5; font-weight: 900;">OTRAS DEUDAS POR REGULARIZAR</div>'
+            f'<div style="font-size: 28px; font-weight: 900; color: white;">{nombre_show}</div>'
             '</div>'
             '<div style="text-align: right;">'
-            '<div style="font-size: 11px; color: #fca5a5; font-weight: 900;">TOTAL PENDIENTE</div>'
-            f'<div style="font-size: 32px; font-weight: 900; color: #fef08a;">S/ {total_venc_fmt}</div>'
+            '<div style="font-size: 12px; color: #fca5a5; font-weight: 900;">TOTAL PENDIENTE</div>'
+            f'<div style="font-size: 34px; font-weight: 900; color: #fef08a;">S/ {total_venc_fmt}</div>'
             '</div>'
             '</div>'
             + html_vencidos +
