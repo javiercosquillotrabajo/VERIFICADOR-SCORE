@@ -20,25 +20,37 @@ css_base = (
     "h1, h2, h3, h4, h5, p, span { font-family: 'Segoe UI', Tahoma, Arial, sans-serif; }"
     "div[data-testid='column']:nth-of-type(1) {"
     "  background: #111a2e;"
-    "  border: 2.5px solid #38bdf8;"
+    "  border: 3px solid #38bdf8;"
     "  border-radius: 24px;"
     "  padding: 26px 20px;"
     "  box-shadow: 0 15px 45px rgba(0,0,0,0.6);"
     "}"
+    "div[data-testid='stTextInput'] label p, div[data-testid='stNumberInput'] label p, div[data-testid='stFileUploader'] label p {"
+    "  font-size: 24px !important; font-weight: 900 !important; color: #38bdf8 !important; margin-bottom: 6px !important;"
+    "}"
     "div[data-testid='stTextInput'] input, div[data-testid='stNumberInput'] input {"
-    "  font-size: 26px !important; font-weight: 900 !important; height: 64px !important; color: #ffffff !important; background-color: #0f172a !important; border: 2.5px solid #475569 !important; border-radius: 16px !important; padding: 10px 16px !important;"
+    "  font-size: 32px !important; font-weight: 900 !important; height: 70px !important; color: #ffffff !important; background-color: #0f172a !important; border: 3px solid #38bdf8 !important; border-radius: 18px !important; padding: 10px 18px !important;"
     "}"
-    "div[data-testid='stTextInput'] label, div[data-testid='stNumberInput'] label {"
-    "  font-size: 22px !important; font-weight: 900 !important; color: #38bdf8 !important; margin-bottom: 6px !important;"
-    "}"
-    "div[data-testid='stButton'] button {"
-    "  font-size: 20px !important; font-weight: 900 !important; padding: 16px 14px !important; border-radius: 16px !important; margin-top: 8px !important;"
-    "}"
-    "div[data-testid='stRadio'] label span {"
-    "  font-size: 19px !important; font-weight: 900 !important; color: #ffffff !important; padding-left: 6px !important;"
+    "div[data-testid='stRadio'] label p, div[data-testid='stRadio'] label span, div[data-testid='stRadio'] label {"
+    "  font-size: 24px !important; font-weight: 900 !important; color: #ffffff !important; line-height: 1.4 !important; padding-left: 8px !important;"
     "}"
     "div[data-testid='stRadio'] > div {"
-    "  background: #0f172a !important; border: 2px solid #334155 !important; border-radius: 18px !important; padding: 12px 14px !important; gap: 12px !important;"
+    "  background: #0f172a !important; border: 2.5px solid #38bdf8 !important; border-radius: 20px !important; padding: 16px 18px !important; gap: 16px !important;"
+    "}"
+    "div[data-testid='stFileUploader'] section div, div[data-testid='stFileUploader'] section span {"
+    "  font-size: 18px !important; font-weight: 800 !important; color: #e2e8f0 !important;"
+    "}"
+    "div[data-testid='stButton'] button, div[data-testid='stButton'] button p {"
+    "  font-size: 22px !important; font-weight: 900 !important;"
+    "}"
+    "div[data-testid='stButton'] button {"
+    "  padding: 18px 14px !important; border-radius: 18px !important; margin-top: 8px !important; height: auto !important;"
+    "}"
+    "div[data-testid='stButton'] button[kind='secondary'] {"
+    "  background-color: #1e293b !important; border: 2.5px solid #fbbf24 !important;"
+    "}"
+    "div[data-testid='stButton'] button[kind='secondary'] p {"
+    "  color: #fbbf24 !important;"
     "}"
     ".speedometer-card { background: #151e32; border: 2.5px solid #334155; border-radius: 26px; padding: 30px 20px; margin: 15px auto; max-width: 640px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); text-align: center; }"
     ".bank-card { background: #151e32; border: 2px solid #334155; border-radius: 18px; padding: 18px 22px; margin-bottom: 14px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 8px 25px rgba(0,0,0,0.3); text-align: left; }"
@@ -259,7 +271,6 @@ def extraer_otras_deudas(pdf):
                     acreedor_nom = re.sub(r"^\d+\s+", "", parte_izq).strip()
                     acreedor_nom = re.sub(r"^(#Doc|Fuente|Acreedor|Monto|Dias)\s*", "", acreedor_nom, flags=re.IGNORECASE).strip()
 
-                    # Filtrar si es una fecha (ej: 20/10/2026) o monto 0.00
                     if re.match(r"^\d{1,2}/\d{1,2}/\d{2,4}$", acreedor_nom):
                         continue
                     try:
@@ -327,10 +338,10 @@ if "estilo_seleccionado" not in st.session_state:
 col_panel, col_display = st.columns([1.1, 2.3], gap="large")
 
 # =========================================================================
-# 🎛️ LADO IZQUIERDO: PANEL DE CONTROL CON LETRAS GIGANTES Y EL SELECTOR
+# 🎛️ LADO IZQUIERDO: PANEL DE CONTROL EN LETRAS GIGANTES Y MÁXIMA NITIDEZ
 # =========================================================================
 with col_panel:
-    st.markdown("<h2 style='margin:0 0 2px 0; color:#38bdf8; font-size:30px; font-weight:900;'>🎛️ PANEL PRIVADO</h2>", unsafe_allow_html=True)
+    st.markdown("<h1 style='margin:0 0 2px 0; color:#38bdf8; font-size:32px; font-weight:900;'>🎛️ PANEL PRIVADO</h1>", unsafe_allow_html=True)
     st.markdown("<p style='font-size:16px; color:#94a3b8; font-weight:bold; margin-bottom:14px;'>Consola de control (fuera de cámara).</p>", unsafe_allow_html=True)
 
     uploaded_file = st.file_uploader("📂 Adjuntar reporte PDF", type=["pdf"])
@@ -360,9 +371,9 @@ with col_panel:
     score_final_ctrl = 0 if score_ctrl == 92 else score_ctrl
 
     st.write("")
-    st.markdown("<p style='font-size:20px; font-weight:900; color:#38bdf8; margin: 10px 0 6px 0;'>📺 Vista para la transmisión:</p>", unsafe_allow_html=True)
+    st.markdown("<p style='font-size:24px; font-weight:900; color:#38bdf8; margin: 12px 0 8px 0;'>📺 Vista para la transmisión:</p>", unsafe_allow_html=True)
     
-    # LA BARRA DE LOS 4 PUNTOS AHORA ESTÁ AQUÍ EN TAMAÑO GRANDE
+    # LAS 4 OPCIONES EN LETRAS GRANDES BLANCAS (24px)
     estilo_sel = st.radio(
         "Seleccionar vista:",
         ["1. Velocímetro SBS", "2. Ficha y Pastillas", "3. Deudas Bancarias", "4. Otras Deudas"],
@@ -380,12 +391,8 @@ with col_panel:
         st.session_state["modo_suspenso"] = False
         st.rerun()
 
-    st.markdown("<div style='margin-top:6px;'></div>", unsafe_allow_html=True)
-    # BOTÓN DE SUSPENSO VISIBLE Y EN DORADO
-    btn_susp = (
-        '<button onclick="window.location.reload();" style="display:none;"></button>'
-    )
-    if st.button("🎭 ACTIVAR SUSPENSO (AGUJA OSCILANDO)", use_container_width=True):
+    st.markdown("<div style='margin-top:8px;'></div>", unsafe_allow_html=True)
+    if st.button("🎭 ACTIVAR SUSPENSO (AGUJA OSCILANDO)", use_container_width=True, type="secondary"):
         st.session_state["live_nombre"] = nombre_ctrl
         st.session_state["live_score"] = score_final_ctrl
         st.session_state["live_deudas"] = detected_deudas
@@ -393,18 +400,18 @@ with col_panel:
         st.session_state["modo_suspenso"] = True
         st.rerun()
 
-    st.markdown("<hr style='border-color:#334155; margin:18px 0;'>", unsafe_allow_html=True)
+    st.markdown("<hr style='border-color:#334155; margin:20px 0;'>", unsafe_allow_html=True)
     st.markdown(
-        f"<div style='background:#0f172a; border:2px solid #334155; border-radius:16px; padding:14px 16px; margin-bottom:10px;'>"
-        f"<div style='font-size:16px; font-weight:900; color:#00e676;'>🏦 DEUDAS SBS:</div>"
-        f"<div style='font-size:22px; font-weight:900; color:#ffffff;'>{len(detected_deudas)} detectadas</div>"
+        f"<div style='background:#0f172a; border:2.5px solid #334155; border-radius:18px; padding:16px 18px; margin-bottom:12px;'>"
+        f"<div style='font-size:18px; font-weight:900; color:#00e676; margin-bottom:4px;'>🏦 DEUDAS SBS:</div>"
+        f"<div style='font-size:26px; font-weight:900; color:#ffffff;'>{len(detected_deudas)} detectadas</div>"
         f"</div>",
         unsafe_allow_html=True
     )
     st.markdown(
-        f"<div style='background:#0f172a; border:2px solid #334155; border-radius:16px; padding:14px 16px;'>"
-        f"<div style='font-size:16px; font-weight:900; color:#f87171;'>⚠️ OTRAS DEUDAS:</div>"
-        f"<div style='font-size:22px; font-weight:900; color:#ffffff;'>{len(detected_vencidos)} detectadas</div>"
+        f"<div style='background:#0f172a; border:2.5px solid #334155; border-radius:18px; padding:16px 18px;'>"
+        f"<div style='font-size:18px; font-weight:900; color:#f87171; margin-bottom:4px;'>⚠️ OTRAS DEUDAS:</div>"
+        f"<div style='font-size:26px; font-weight:900; color:#ffffff;'>{len(detected_vencidos)} detectadas</div>"
         f"</div>",
         unsafe_allow_html=True
     )
@@ -538,7 +545,7 @@ with col_display:
                 dias_v = v["dias"]
                 dias_v_txt = f"{dias_v} días vencido" if dias_v.isdigit() else "Impago"
                 html_vencidos += (
-                    '<div class="bank-card" style="border: 2.5px solid #ed1c24;">'
+                    '<div class="bank-card" style="border: 2px solid #ed1c24;">'
                     '<div>'
                     f'<div style="font-size: 22px; font-weight: 900; color: #ffffff; margin-bottom: 4px;">⚠️ {v["acreedor"]}</div>'
                     f'<div style="font-size: 15px; font-weight: 900; color: #94a3b8;">Monto vencido: <span style="font-size: 26px; font-weight: 900; color: #ed1c24;">S/ {v["monto"]}</span></div>'
@@ -565,7 +572,7 @@ with col_display:
             f'<div style="font-size: 28px; font-weight: 900; color: white;">{nombre_show}</div>'
             '</div>'
             '<div style="text-align: right;">'
-            '<div style="font-size: 12px; color: #fca5a5; font-weight: 900;">TOTAL PENDIENTE</div>'
+            '<div style="font-size: 11px; color: #fca5a5; font-weight: 900;">TOTAL PENDIENTE</div>'
             f'<div style="font-size: 34px; font-weight: 900; color: #fef08a;">S/ {total_venc_fmt}</div>'
             '</div>'
             '</div>'
